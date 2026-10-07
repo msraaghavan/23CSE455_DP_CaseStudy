@@ -1,0 +1,9 @@
+# Shared test cases - Template Method "Published Document Page" (same file for all 4 languages)
+# format:  HTTP method | versions (file name:published yes/no, comma separated; "-" = none) | expected answer
+GET    | policy_v1.pdf:no,policy_v2.pdf:yes | 200 application/pdf
+GET    | terms.html:yes                     | 200 text/html
+GET    | old.html:no,new.pdf:yes            | 200 application/pdf
+GET    | draft.pdf:no                       | 404 Not Found
+GET    | -                                  | 404 Not Found
+POST   | terms.html:yes                     | 405 Method Not Allowed
+DELETE | terms.html:yes                     | 405 Method Not Allowed

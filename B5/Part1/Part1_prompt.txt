@@ -1,0 +1,28 @@
+You are helping with a university case study on design patterns.
+
+Below is the complete source code of a small Django app called "doc_manager"
+(version 1.0.2, commit 5943319). An admin uploads versions of a document
+(PDF or HTML, for example a Privacy Policy). Old versions are kept and exactly
+one version is "published" and shown to visitors. Every line has its line number.
+
+Task:
+1. Find every design pattern instance in the app's own Python code
+   (the files under doc_manager/). Also include patterns where Django supplies
+   the fixed part and the app supplies the variable part.
+2. For each instance give:
+   - pattern name and category (GoF creational / structural / behavioral,
+     GRASP, architecture, or framework idiom)
+   - a short meaningful instance name (not just the pattern name)
+   - every role mapped to the actual class or method (qualified name),
+     with file path and line range
+   - the evidence: which calls or overrides prove the pattern
+3. List the candidates you considered but rejected, with a one-line reason each.
+4. Give totals: number of distinct pattern types, number of instances,
+   number of concrete participant classes.
+
+Rules: use only the code shown. If a role is played by a Django class, name the
+Django class. If a role has no class in the code, write "not separately declared".
+The files under example/ only show how a project uses the app.
+Keep the answer short and answer in Markdown.
+
+=== SOURCE CODE ===

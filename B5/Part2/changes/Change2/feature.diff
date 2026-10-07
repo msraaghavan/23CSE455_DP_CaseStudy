@@ -1,0 +1,138 @@
+diff --git a/README.rst b/README.rst
+index 039101a..0d519f9 100644
+--- a/README.rst
++++ b/README.rst
+@@ -85,6 +85,15 @@ Adding path to ``urls.py``: ::
+         path('see_document/', OurView.as_view(), name = 'see_document'),
+     ]
+ 
++To let visitors open an older (archived) version by its id, add a second view and path (drafts that were never published stay hidden): ::
++
++    from doc_manager.views import DocumentVersionView
++
++    class OurVersionView(DocumentVersionView):
++        model = OurModel
++
++    path('see_document/<int:pk>/', OurVersionView.as_view(), name='see_document_version'),
++
+ To add a link to the view of a published document, just: ::
+ 
+     <a  href="{% url 'see_document' %}" target="_blank">See document</a>
+diff --git a/doc_manager/views.py b/doc_manager/views.py
+index dc1913c..bcc1afd 100644
+--- a/doc_manager/views.py
++++ b/doc_manager/views.py
+@@ -11,7 +11,7 @@ class DocumentView(View):
+         """Returns the document to show: the published one."""
+         return self.model.objects.published()
+ 
+-    def get(self, request):
++    def get(self, request, *args, **kwargs):
+         """Returns the file of the document chosen by get_document()."""
+         document_model = self.get_document()
+         if document_model is None:
+@@ -24,3 +24,13 @@ class DocumentView(View):
+             raise Http404
+         return FileResponse(file, as_attachment=False,
+                             content_type=FILE_TYPES[extension])
++
++
++class DocumentVersionView(DocumentView):
++    """Shows an older version, chosen by its id in the URL (pk).
++    Drafts that were never published stay hidden."""
++
++    def get_document(self):
++        return self.model.objects.filter(
++            pk=self.kwargs['pk'], pub_date__isnull=False
++        ).first()
+diff --git a/example/our_app/views.py b/example/our_app/views.py
+index ccf8044..c3094c4 100644
+--- a/example/our_app/views.py
++++ b/example/our_app/views.py
+@@ -1,7 +1,11 @@
+-from doc_manager.views import DocumentView
++from doc_manager.views import DocumentView, DocumentVersionView
+ 
+ from .models import OurModel
+ 
+ 
+ class OurView(DocumentView):
+     model = OurModel
++
++
++class OurVersionView(DocumentVersionView):
++    model = OurModel
+diff --git a/example/urls.py b/example/urls.py
+index 7c2a2a5..e94ffd9 100644
+--- a/example/urls.py
++++ b/example/urls.py
+@@ -16,10 +16,12 @@ Including another URLconf
+ from django.contrib import admin
+ from django.urls import path
+ 
+-from example.our_app.views import OurView
++from example.our_app.views import OurView, OurVersionView
+ 
+ 
+ urlpatterns = [
+     path('admin/', admin.site.urls),
+-    path('see_document/', OurView.as_view(), name='see_document')
++    path('see_document/', OurView.as_view(), name='see_document'),
++    path('see_document/<int:pk>/', OurVersionView.as_view(),
++         name='see_document_version'),
+ ]
+diff --git a/tests/test_version_view.py b/tests/test_version_view.py
+new file mode 100644
+index 0000000..bc1a16e
+--- /dev/null
++++ b/tests/test_version_view.py
+@@ -0,0 +1,49 @@
++import shutil
++import tempfile
++
++from django.core.files.uploadedfile import SimpleUploadedFile
++from django.http import Http404
++from django.test import RequestFactory, TestCase, override_settings
++from doc_manager.views import DocumentVersionView
++from tests.models import TestModel
++
++MEDIA_ROOT = tempfile.mkdtemp()
++
++
++class TestVersionView(DocumentVersionView):
++    model = TestModel
++
++
++@override_settings(MEDIA_ROOT=MEDIA_ROOT)
++class DocumentVersionViewTestClass(TestCase):
++    @classmethod
++    def tearDownClass(cls):
++        super().tearDownClass()
++        shutil.rmtree(MEDIA_ROOT, ignore_errors=True)
++
++    def add_version(self, name):
++        return TestModel.objects.create(
++            file_obj=SimpleUploadedFile(name, b'content')
++        )
++
++    def get_page(self, pk):
++        request = RequestFactory().get('/see_document/%s/' % pk)
++        response = TestVersionView.as_view()(request, pk=pk)
++        response.close()
++        return response
++
++    def test_old_version(self):
++        old = self.add_version('policy_2022.html')
++        TestModel.objects.set_published(old.pk)
++        new = self.add_version('policy_2023.pdf')
++        TestModel.objects.set_published(new.pk)
++        self.assertEqual(self.get_page(old.pk)['Content-Type'], 'text/html')
++
++    def test_draft_gives_404(self):
++        draft = self.add_version('policy_draft.pdf')
++        with self.assertRaises(Http404):
++            self.get_page(draft.pk)
++
++    def test_unknown_version_gives_404(self):
++        with self.assertRaises(Http404):
++            self.get_page(999)

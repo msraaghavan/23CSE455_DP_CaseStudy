@@ -1,0 +1,172 @@
+==================================================================
+STEP 1 - code after CH02 (before the CH03 refactoring), all tests
+commit: 62acc26
+time (UTC): 2026-10-06T18:52:03Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 22 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_draft_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_draft_gives_404) ... ok
+test_old_version (tests.test_version_view.DocumentVersionViewTestClass.test_old_version) ... ok
+test_unknown_version_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_unknown_version_gives_404) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.074s
+
+OK
+
+==================================================================
+STEP 2 - after the CH03 refactoring (Rename Parameter queryset -> document), same tests
+commit: 6fb6088
+time (UTC): 2026-10-06T18:52:05Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 22 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_draft_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_draft_gives_404) ... ok
+test_old_version (tests.test_version_view.DocumentVersionViewTestClass.test_old_version) ... ok
+test_unknown_version_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_unknown_version_gives_404) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.057s
+
+OK
+
+==================================================================
+STEP 3 - new CH03 tests run on the refactored code BEFORE the feature (expected: the two 'locked' tests fail; the draft test already passes)
+commit: 6fb6088 + uncommitted working-tree changes
+time (UTC): 2026-10-06T18:52:07Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 25 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_file_editable_for_draft (tests.test_admin.AdminTestClass.test_file_editable_for_draft) ... ok
+test_file_locked_after_publishing (tests.test_admin.AdminTestClass.test_file_locked_after_publishing) ... FAIL
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_published_file_not_in_edit_form (tests.test_admin.AdminTestClass.test_published_file_not_in_edit_form) ... FAIL
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_draft_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_draft_gives_404) ... ok
+test_old_version (tests.test_version_view.DocumentVersionViewTestClass.test_old_version) ... ok
+test_unknown_version_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_unknown_version_gives_404) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ok
+
+======================================================================
+FAIL: test_file_locked_after_publishing (tests.test_admin.AdminTestClass.test_file_locked_after_publishing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_admin.py", line 50, in test_file_locked_after_publishing
+    self.assertIn('file_obj', self.site.get_readonly_fields(None, doc))
+AssertionError: 'file_obj' not found in ('add_date', 'pub_date', 'published')
+
+======================================================================
+FAIL: test_published_file_not_in_edit_form (tests.test_admin.AdminTestClass.test_published_file_not_in_edit_form)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_admin.py", line 61, in test_published_file_not_in_edit_form
+    self.assertNotIn('file_obj', form.base_fields)
+AssertionError: 'file_obj' unexpectedly found in {'file_obj': <django.forms.fields.FileField object at 0x00000204B1FE0150>}
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.100s
+
+FAILED (failures=2)
+
+==================================================================
+STEP 4 - after the CH03 feature (file of a published version is read-only), all tests
+commit: 6fb6088 + uncommitted working-tree changes
+time (UTC): 2026-10-06T18:52:09Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 25 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_file_editable_for_draft (tests.test_admin.AdminTestClass.test_file_editable_for_draft) ... ok
+test_file_locked_after_publishing (tests.test_admin.AdminTestClass.test_file_locked_after_publishing) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_published_file_not_in_edit_form (tests.test_admin.AdminTestClass.test_published_file_not_in_edit_form) ... ok
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_draft_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_draft_gives_404) ... ok
+test_old_version (tests.test_version_view.DocumentVersionViewTestClass.test_old_version) ... ok
+test_unknown_version_gives_404 (tests.test_version_view.DocumentVersionViewTestClass.test_unknown_version_gives_404) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.097s
+
+OK
+
+==================================================================
+Commit map (local branch 'case-study', see ../commits.txt):
+  step 1 ran on                   62acc26  (after_change2)
+  step 2 ran on                   6fb6088  (CH03 refactoring)
+  step 4 code  was  committed as  145fcce  (CH03 feature = after_change3)
+A line 'commit: X + uncommitted working-tree changes' above means: commit X plus the new, not yet committed work of that step.

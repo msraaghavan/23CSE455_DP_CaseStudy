@@ -1,0 +1,19 @@
+% After Change 2: "Published Document Page" (extended) and "Document Choice Step" (newly introduced)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[djcls] (view) {\textbf{View} \\ \role{Django}
+  \nodepart{second} dispatch() \role{-- recipe 1: calls get()}};
+\node[appcls, below=1.1cm of view] (dv) {\textbf{DocumentView} \\ \role{app}
+  \nodepart{second} get() \role{-- recipe 2: get\_document(), check, send file}\\
+  get\_document() \role{-- step: the published version}};
+\node[newcls, below=1.1cm of dv] (dvv) {\textbf{DocumentVersionView} \\ \role{new in Change 2}
+  \nodepart{second} get\_document() \role{-- step: the version with this id}};
+\draw[inherits] (dv) -- (view);
+\draw[inherits] (dvv) -- (dv);
+\node[note, right=0.7cm of view] {Published Document Page (extended):\\ View $\leftarrow$ DocumentView, DocumentVersionView};
+\node[note, right=0.7cm of dvv] {Document Choice Step (new):\\ DocumentView $\leftarrow$ DocumentVersionView};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,17 @@
+% After Change 1: "Upload File Checks" and "Upload Widget Choice" (both modified)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[newcls] (ft) at (0,0) {\textbf{FILE\_TYPES} \\ \role{new in Change 1, one table}
+  \nodepart{second} pdf, html, txt};
+\node[djcls] (fev) at (-3.6,-2.6) {\textbf{FileExtensionValidator} \\ \role{ConcreteStrategy of Upload File Checks}
+  \nodepart{second} allows pdf, html, txt};
+\node[djcls] (fi) at (3.6,-2.6) {\textbf{FileInput} \\ \role{ConcreteStrategy of Upload Widget Choice}
+  \nodepart{second} accept = the same types};
+\draw[uses] (ft) -- node[lbl, above left=1pt] {configures} (fev);
+\draw[uses] (ft) -- node[lbl, above right=1pt] {configures} (fi);
+\node[note, below=0.5cm of ft, yshift=-2.7cm] {The page (DocumentView) uses the same table to pick the content type.\\ Before: the four type lists were typed separately in three files.};
+\end{tikzpicture}
+\end{document}

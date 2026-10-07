@@ -1,0 +1,14 @@
+% Template Method - "Published Document Page" (original code)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[djcls] (view) {\textbf{View} \\ \role{AbstractClass (Django)}
+  \nodepart{second} dispatch() \role{-- the fixed recipe}};
+\node[appcls, below=1.3cm of view] (dv) {\textbf{DocumentView} \\ \role{ConcreteClass (app)}
+  \nodepart{second} get() \role{-- the step it fills in}};
+\draw[inherits] (dv) -- (view);
+\node[note, right=0.8cm of view] {For a GET request, dispatch() calls get().\\ For other requests it answers ``405''.};
+\end{tikzpicture}
+\end{document}

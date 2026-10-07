@@ -1,0 +1,87 @@
+diff --git a/doc_manager/admin.py b/doc_manager/admin.py
+index eadd324..392fe6c 100644
+--- a/doc_manager/admin.py
++++ b/doc_manager/admin.py
+@@ -8,6 +8,8 @@ from django.utils.translation import gettext as _
+ from django.forms.widgets import FileInput
+ from django.db.models import FileField
+ 
++from .models import FILE_TYPES
++
+ 
+ class DocumentAdmin(admin.ModelAdmin):
+     """Admin class for publishing documents with a 'Publish' button."""
+@@ -20,7 +22,7 @@ class DocumentAdmin(admin.ModelAdmin):
+     list_filter = ['add_date']
+     formfield_overrides = {
+         FileField: {
+-            'widget': FileInput(attrs={'accept': ['application/pdf', 'text/html']})
++            'widget': FileInput(attrs={'accept': list(FILE_TYPES.values())})
+         },
+     }
+ 
+diff --git a/doc_manager/models.py b/doc_manager/models.py
+index d992b74..8f2eb0a 100644
+--- a/doc_manager/models.py
++++ b/doc_manager/models.py
+@@ -14,18 +14,28 @@ from django.forms import forms
+ from django.template.defaultfilters import filesizeformat
+ from django.utils.translation import gettext_lazy as _
+ 
++# Allowed document types: file extension -> content type.
++FILE_TYPES = {
++    'pdf': 'application/pdf',
++    'html': 'text/html',
++}
++
+ 
+ class ContentTypeRestrictedFileField(FileField):
+-    """FileField only for files in html and pdf format."""
+-    def __init__(self, content_types=['application/pdf', 'text/html'],
++    """FileField only for the file types listed in FILE_TYPES."""
++    def __init__(self, content_types=None,
+                  max_upload_size=None, upload_to=None, **kwargs):
+-        self.content_types = content_types
++        self.content_types = (
++            content_types
++            if content_types is not None
++            else list(FILE_TYPES.values())
++        )
+         self.max_upload_size = (
+             max_upload_size
+             if max_upload_size
+             else getattr(settings, 'MAX_FILE_UPLOAD_SIZE', 5242880)
+         )
+-        kwargs['validators'] = [FileExtensionValidator(['pdf', 'html'])]
++        kwargs['validators'] = [FileExtensionValidator(list(FILE_TYPES))]
+         super(ContentTypeRestrictedFileField, self).__init__(**kwargs)
+         self.upload_to = (
+             upload_to
+diff --git a/doc_manager/views.py b/doc_manager/views.py
+index 6977663..4138a2b 100644
+--- a/doc_manager/views.py
++++ b/doc_manager/views.py
+@@ -1,6 +1,8 @@
+ from django.views import View
+ from django.http import Http404, FileResponse
+ 
++from .models import FILE_TYPES
++
+ 
+ class DocumentView(View):
+     model = None
+@@ -13,11 +15,6 @@ class DocumentView(View):
+         file = document_model.file_obj
+         if file is None:
+             raise Http404
+-        filename = document_model.filename()
+-        if filename.endswith('.html'):
+-            response = FileResponse(file, as_attachment=False,
+-                                    content_type='text/html')
+-        elif filename.endswith('.pdf'):
+-            response = FileResponse(file, as_attachment=False,
+-                                    content_type='application/pdf')
+-        return response
++        extension = document_model.filename().rsplit('.', 1)[-1]
++        return FileResponse(file, as_attachment=False,
++                            content_type=FILE_TYPES[extension])

@@ -1,0 +1,5 @@
+version,folder,source_files,nloc,functions,max_ccn,avg_ccn,tests_passed,tests_total
+original,data/code,6,138,10,5,2.2,11,11
+after_change1,Part2/changes/Change1/code,6,146,10,4,2.2,19,19
+after_change2,Part2/changes/Change2/code,6,155,12,4,2.0,22,22
+after_change3,Part2/code,6,158,12,4,2.08,25,25

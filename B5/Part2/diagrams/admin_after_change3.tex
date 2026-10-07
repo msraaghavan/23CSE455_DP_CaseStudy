@@ -1,0 +1,14 @@
+% After Change 3: "Admin Read-only Fields" (modified - same structure, the hook answers more)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[djcls] (ma) {\textbf{ModelAdmin} \\ \role{AbstractClass (Django)}
+  \nodepart{second} changeform\_view() \role{-- the fixed recipe}\\ get\_readonly\_fields() \role{-- hook}};
+\node[newcls, below=1.3cm of ma] (da) {\textbf{DocumentAdmin} \\ \role{ConcreteClass (app), hook changed}
+  \nodepart{second} get\_readonly\_fields()};
+\draw[inherits] (da) -- (ma);
+\node[note, right=0.8cm of da] {Saved version: dates and ``published'' are locked.\\ Published version: the file is locked too (new).};
+\end{tikzpicture}
+\end{document}

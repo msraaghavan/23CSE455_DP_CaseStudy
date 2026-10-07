@@ -1,0 +1,17 @@
+source_version,summary,pattern_name,count
+original,per_pattern,Strategy,2
+original,per_pattern,Template Method,2
+original,total_pattern_types,,2
+original,total_pattern_instances,,4
+after_change1,per_pattern,Strategy,2
+after_change1,per_pattern,Template Method,2
+after_change1,total_pattern_types,,2
+after_change1,total_pattern_instances,,4
+after_change2,per_pattern,Strategy,2
+after_change2,per_pattern,Template Method,3
+after_change2,total_pattern_types,,2
+after_change2,total_pattern_instances,,5
+after_change3,per_pattern,Strategy,2
+after_change3,per_pattern,Template Method,3
+after_change3,total_pattern_types,,2
+after_change3,total_pattern_instances,,5

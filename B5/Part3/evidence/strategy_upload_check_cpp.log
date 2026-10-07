@@ -1,0 +1,17 @@
+Strategy - Upload File Checks - cpp
+working folder: Part3/strategy_upload_check/cpp
+runtime/compiler: clang 21.1.0 (ziglang 0.16.0, -std=c++17 -O2)
+command: python -m ziglang c++ -std=c++17 -O2 -o test_upload_check.exe test_upload_check.cpp && test_upload_check.exe
+(build/ and the .exe were made in a temporary folder that was deleted afterwards)
+compile exit code: 0
+--- test output ---
+PASS test.txt text/plain 10 -> ERROR extension not allowed
+PASS test.pdf application/pdf 10 -> OK
+PASS test.html text/html 10 -> OK
+PASS TEST.PDF application/pdf 10 -> OK
+PASS noextension application/pdf 10 -> ERROR extension not allowed
+PASS fake.pdf text/plain 10 -> ERROR file type not supported
+PASS big.pdf application/pdf 100 -> ERROR file too big
+PASS test.exe text/plain 999 -> ERROR extension not allowed
+passed 8/8
+--- exit code: 0

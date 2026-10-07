@@ -1,0 +1,553 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=22mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,tabularx,booktabs,hyperref,xcolor}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+% ---- additions to the template (layout helpers only) ----
+\usepackage{graphicx,enumitem,microtype}
+\setlist{itemsep=1pt,topsep=2pt,parsep=0pt}
+\emergencystretch=1em
+\DisableLigatures[-]{family=tt*}   % show "--" in code as two hyphens
+\def\UrlBreaks{\do\/\do\_}         % break file paths only after / or _
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue!60!black}
+\newcommand{\field}[1]{\textbf{#1:}\ }
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\fig}[3]{\begin{center}\includegraphics[width=#1\linewidth]{#2}\\[2pt]{\small #3}\end{center}}
+\begin{document}
+\begin{center}\Large\textbf{23CSE455 Design Patterns}\\[4pt]\LARGE Case Study Report\end{center}
+
+\field{Team} B5\par
+\field{Case study} Digital Document Management with Django (Python): ``Design Pattern Identification and Evolution in a Django based Digital Document Management Application''\par
+\field{Application} \code{impicode/doc_manager} version 1.0.2. It is a small open-source Django app that keeps every version of a document (PDF or HTML, for example a Privacy Policy) and shows one published version to visitors.\par
+\field{Date} 2026-10-07\par
+\textbf{Submission repository:} \href{https://github.com/aswathymohan-amrita/23CSE455_DP_CaseStudy}{23CSE455\_DP\_CaseStudy} (team folder \code{B5/})\par
+\textbf{Students}\par
+\begin{tabularx}{\linewidth}{@{}llX@{}}\toprule
+Roll number & Student name & Batch\\\midrule
+AM.SC.U4CSE23330 & Raaghavan M S & CSE-D\\
+AM.SC.U4CSE23368 & V Sriman Vashishta & CSE-D\\\bottomrule
+\end{tabularx}
+
+% =====================================================================
+\section{Application and architecture}
+\field{Original source} \url{https://github.com/impicode/doc_manager}, version 1.0.2 (git tag \code{v1.0.2}).
+Baseline commit \code{5943319a6dd41d91807867be8d8ca0661cf93c1c}, dated 15 March 2023.
+Accessed on 6 October 2026. Licence: MIT. Our copy of this exact version is in \path{data/code/}.\par
+
+\field{Environment} Python 3.11.9 and Django 4.1.13, the newest combination that the project itself tests.
+The database is SQLite 3.45.1. Other packages are asgiref 3.12.1, sqlparse 0.6.0 and tzdata 2026.5.
+We measured code with lizard 1.17.31 on Windows 11.
+Part 3 also used Java 25, Node.js 24.17.0 and clang 21.1.0.
+The full list is in \path{data/test_result/environment.txt}.\par
+
+\field{Scope} We inspected the whole app package \code{doc_manager/}: \code{models.py}, \code{admin.py}, \code{views.py},
+\code{apps.py}, \code{version.py} and \code{__init__.py}, which is 138 lines of code in total. We excluded:
+\begin{itemize}
+\item \code{tests/}, which we used only as evidence;
+\item \code{example/}, a demo project that only sets which model to use;
+\item \code{locale/} (translations), \code{docs/} and the packaging files, which contain no design;
+\item Django itself, which is framework code. We name Django classes only where the app connects to them.
+\end{itemize}
+
+\field{Architecture} Figure~1 shows the app. It has three main classes:
+\begin{itemize}
+\item \code{DocumentModel} stores one database row per version, with its dates, its file and a ``published'' flag.
+\item \code{DocumentView} sends the published file to a visitor.
+\item \code{DocumentAdmin} adds a \emph{Publish} button to Django's admin pages.
+\end{itemize}
+\emph{Visitor flow:} the browser opens \code{/see_document/}. Django calls \code{DocumentView.get()},
+which asks the database for the one published version and returns its file.
+\emph{Admin flow:} the admin uploads a file, and the app checks its extension, type and size before saving it.
+Clicking \emph{Publish} unpublishes all other versions and publishes this one.
+\fig{0.95}{Part1/pattern_architecture/architecture.pdf}{Figure 1. Architecture and request flows (source: \path{Part1/pattern_architecture/architecture.tex}).}
+
+\field{Run instructions} The steps are in \path{README.md}. In \path{data/code} run \code{pip install Django==4.1.13}
+and then \code{python runtests.py}.
+\emph{Actual result:} 11 of 11 tests passed (\path{data/test_result/baseline_tests.log}).
+We also started the example project and published a sample document. The page \code{/see_document/} returned it with
+HTTP status 200 (\path{data/test_result/screenshot_see_document_original.png}).\par
+
+% =====================================================================
+\section{Part 1 Pattern discovery}
+\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small
+\textbf{The two patterns in plain words}\\[2pt]
+\textbf{Template Method:} a parent class owns a fixed recipe of steps, and a child class fills in one step.\\
+\textbf{Strategy:} an object keeps a replaceable helper object for one job, so the helper can be swapped without changing the object.}}
+\medskip
+
+\field{Method} We used four steps:
+\begin{enumerate}
+\item We read every line of the app and listed what each class inherits, overrides or plugs into Django.
+\item For each of these points, we opened the Django 4.1.13 source and checked who calls whom.
+\item We proved each candidate with a probe test that runs the real code (\path{data/test_result/probe_test.py}, 10 of 10 passed).
+\item An LLM run (Claude Opus 5.5) gave a second opinion. We checked every claim before using it (Section~5).
+\end{enumerate}
+\emph{Counting rule:} we count GoF design patterns in which a class or method of the app takes part.
+Django idioms, architecture styles and GRASP principles are named but not counted.\par
+
+\subsection{Totals at the baseline}
+\field{Confirmed pattern types} 2: Template Method and Strategy.\par
+\field{Confirmed pattern instances} 4: Published Document Page, Admin Read-only Fields, Upload File Checks and Upload Widget Choice.\par
+\field{Concrete participant classes} 4: \code{DocumentView}, \code{DocumentAdmin}, \code{FileExtensionValidator} and \code{FileInput}.
+The last two are Django classes that the app chooses.\par
+\field{Unique participant symbols} 21 distinct classes, methods and attributes, each counted once (computed by \path{Part1/make_csvs.py}).\par
+\field{Rejected and uncertain candidates} 7 rejected and 0 uncertain (see the table below).
+A further 7 ideas are real but are not GoF patterns, so they are not counted: Model-View-Template, Active Record,
+Custom Manager, Abstract Base Model, Post/Redirect/Get, and the GRASP principles Information Expert and Controller.
+Observation scope: \code{doc_manager/*.py} at commit \code{5943319}.
+
+{\small\begin{tabularx}{\linewidth}{@{}P{40mm}L@{}}\toprule
+Rejected candidate & Reason\\\midrule
+Template Method on \code{clean()} & The field replaces Django's whole \code{clean()} method and then calls the parent. No step is filled in, so this is plain extension.\\
+Factory Method & Subclasses only set \code{model = ...}. No method creates objects.\\
+Singleton & ``Only one published version'' is a data rule, not a single object.\\
+Decorator & \code{@csrf_protect_m} is a Python function wrapper, not a Decorator object.\\
+Command & \code{make_published()} is a normal method that is called directly.\\
+Repository / Facade & \code{DocumentManager} is Django's normal Manager with two small queries.\\
+Template Method in HTML & The admin template extends Django's template. This is real, but it is HTML, outside our Python scope.\\\bottomrule
+\end{tabularx}}
+
+\subsection{Pattern inventory}
+\begin{tabularx}{\linewidth}{@{}lXll@{}}\toprule
+Pattern type & Instance names & Instances & Concrete classes\\\midrule
+Template Method & Published Document Page, Admin Read-only Fields & 2 & 2\\
+Strategy & Upload File Checks, Upload Widget Choice & 2 & 2\\\bottomrule
+\end{tabularx}
+
+Data files: \path{Part1/patterns.csv} and \path{Part1/Pattern_count.csv}.
+In the tables below, paths that start with \path{doc_manager/} are in \path{data/code/}; all other paths are
+inside the installed Django 4.1.13 package (\path{django/}). Every line range was read from the code by \path{Part1/make_csvs.py}.
+
+\subsection{One record for each pattern instance}
+
+% ---------------------------------------------------------------- Record 1
+\subsubsection*{Record 1: Published Document Page}
+\field{Instance name} Published Document Page\par
+\field{Pattern type and category} Template Method; GoF behavioural pattern (framework idiom: Django class-based view).\par
+\field{Purpose and origin} Every page must answer a GET request and refuse other requests in the same way.
+The fixed recipe comes from Django (framework), and the GET step comes from the app (application).\par
+\textbf{Participant mapping}\par
+{\small\begin{tabularx}{\linewidth}{@{}P{30mm}LP{58mm}@{}}\toprule
+Pattern role & Actual class, interface and function & File and line range\\\midrule
+AbstractClass & \code{django.views.View} & \path{views/generic/base.py:35-178}\\
+TemplateMethod & \code{View.dispatch} & \path{views/generic/base.py:132-142}\\
+PrimitiveOperation & \code{get()}: not separately declared in \code{View}; \code{dispatch} finds it by name & --\\
+ConcreteClass & \code{DocumentView} & \path{doc_manager/views.py:5-23}\\
+ConcreteOperation & \code{DocumentView.get} & \path{doc_manager/views.py:8-23}\\\bottomrule
+\end{tabularx}}
+
+\field{Evidence} Django's recipe looks up the method named after the request and calls it:
+{\small\begin{verbatim}
+# Django (View.dispatch) picks the method named after the request:
+handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+return handler(request, *args, **kwargs)
+\end{verbatim}}
+The app writes only \code{get()}, which finds the published version and returns its file.
+Probe test \code{test_1}: \code{dispatch} called \code{get} exactly once, and a POST request got status 405.\par
+\field{Diagram} \path{Part1/pattern_architecture/TM1_published_document_page.tex} (also \code{.pdf} and \code{.png}).
+\fig{0.58}{Part1/pattern_architecture/TM1_published_document_page.pdf}{Figure 2. Published Document Page.}
+\field{Verification} Confirmed by team B5, using the probe test and the original tests. The LLM run agreed.
+We also considered Strategy and rejected it, because the step is chosen by inheritance, not by a swappable object.\par
+
+% ---------------------------------------------------------------- Record 2
+\subsubsection*{Record 2: Admin Read-only Fields}
+\field{Instance name} Admin Read-only Fields\par
+\field{Pattern type and category} Template Method; GoF behavioural pattern (framework idiom: Django admin hook).\par
+\field{Purpose and origin} Django builds the admin edit page with a long fixed recipe. The app only decides which fields are locked.
+The recipe comes from Django (framework), and the answer comes from the app (application).\par
+\textbf{Participant mapping}\par
+{\small\begin{tabularx}{\linewidth}{@{}P{30mm}LP{58mm}@{}}\toprule
+Pattern role & Actual class, interface and function & File and line range\\\midrule
+AbstractClass & \code{django.contrib.admin.ModelAdmin} & \path{contrib/admin/options.py:612-2288}\\
+TemplateMethod & \code{ModelAdmin._changeform_view} and \code{ModelAdmin.get_form} & \path{contrib/admin/options.py:1753-1888} and \path{:758-812}\\
+Hook (default) & \code{BaseModelAdmin.get_readonly_fields} & \path{contrib/admin/options.py:396-400}\\
+ConcreteClass & \code{DocumentAdmin} & \path{doc_manager/admin.py:12-59}\\
+ConcreteHook & \code{DocumentAdmin.get_readonly_fields} & \path{doc_manager/admin.py:27-30}\\\bottomrule
+\end{tabularx}}
+
+\field{Evidence} Django's recipe asks the hook, and the app answers it:
+{\small\begin{verbatim}
+# Django (ModelAdmin._changeform_view) asks the hook:
+readonly_fields = self.get_readonly_fields(request, obj)
+# the app (DocumentAdmin.get_readonly_fields) answers:
+if obj:
+    return self.readonly_fields + ('add_date', 'pub_date', 'published')
+\end{verbatim}}
+This is confirmed by the original test \code{test_get_readonly_fields} and by probe test \code{test_2}, where the recipe called the hook while building the page.\par
+\field{Diagram} \path{Part1/pattern_architecture/TM2_admin_readonly_fields.tex} (also \code{.pdf} and \code{.png}).
+\fig{0.62}{Part1/pattern_architecture/TM2_admin_readonly_fields.pdf}{Figure 3. Admin Read-only Fields.}
+\field{Verification} Confirmed by team B5. The LLM run also called \code{changeform_view} a hook. We corrected this:
+it is the entry point of the recipe, which the app extends to handle the \emph{Publish} button.\par
+
+% ---------------------------------------------------------------- Record 3
+\subsubsection*{Record 3: Upload File Checks}
+\field{Instance name} Upload File Checks\par
+\field{Pattern type and category} Strategy; GoF behavioural pattern (framework idiom: Django validators).\par
+\field{Purpose and origin} Uploaded files must be checked by rules that can be changed without changing the field.
+The loop that runs the checks comes from Django (framework). The app chooses the checker and adds a type check and a size check (application).\par
+\textbf{Participant mapping}\par
+{\small\begin{tabularx}{\linewidth}{@{}P{30mm}LP{58mm}@{}}\toprule
+Pattern role & Actual class, interface and function & File and line range\\\midrule
+Context & \code{Field.run_validators}, called by \code{Field.clean} & \path{db/models/fields/__init__.py:701-715}\\
+Context (subclass) & \code{ContentTypeRestrictedFileField} and its \code{clean()} & \path{doc_manager/models.py:18-54}\\
+Strategy & Not separately declared: any function \code{validator(value)} that raises an error & --\\
+ConcreteStrategy & \code{FileExtensionValidator} (Django) & \path{core/validators.py:539-580}\\
+Client & \code{__init__} of \code{ContentTypeRestrictedFileField} & \path{doc_manager/models.py:20-34}\\\bottomrule
+\end{tabularx}}
+
+\field{Evidence} The app plugs the checker in, and Django runs every checker in the same way:
+{\small\begin{verbatim}
+# the app (models.py, line 28) plugs in the checker:
+kwargs['validators'] = [FileExtensionValidator(['pdf', 'html'])]
+# Django (Field.run_validators) runs every checker:
+for v in self.validators:
+    v(value)
+\end{verbatim}}
+Probe test \code{test_3} shows three things: the field holds this checker, it rejects \code{test.txt}, and swapping in a different checker changes the rule.\par
+\field{Diagram} \path{Part1/pattern_architecture/S1_upload_file_checks.tex} (also \code{.pdf} and \code{.png}).
+\fig{0.66}{Part1/pattern_architecture/S1_upload_file_checks.pdf}{Figure 4. Upload File Checks.}
+\field{Verification} Confirmed by team B5. The LLM run agreed. We also considered Chain of Responsibility and rejected it, because every checker always runs.\par
+
+% ---------------------------------------------------------------- Record 4
+\subsubsection*{Record 4: Upload Widget Choice}
+\field{Instance name} Upload Widget Choice\par
+\field{Pattern type and category} Strategy; GoF behavioural pattern (framework idiom: Django form widgets).\par
+\field{Purpose and origin} The admin should show a plain upload box instead of Django's default box.
+A form field draws itself through a replaceable widget object (framework), and the app chooses \code{FileInput} (application).\par
+\textbf{Participant mapping}\par
+{\small\begin{tabularx}{\linewidth}{@{}P{30mm}LP{58mm}@{}}\toprule
+Pattern role & Actual class, interface and function & File and line range\\\midrule
+Context & \code{django.forms.FileField}, drawn by \code{BoundField.as_widget} & \path{forms/fields.py:618-689} and \path{forms/boundfield.py:84-104}\\
+Strategy & \code{django.forms.widgets.Widget} & \path{forms/widgets.py:232-315}\\
+ConcreteStrategy & \code{django.forms.widgets.FileInput} & \path{forms/widgets.py:415-456}\\
+Client & \code{DocumentAdmin.formfield_overrides}, applied by \code{BaseModelAdmin.formfield_for_dbfield} & \path{doc_manager/admin.py:21-25} and \path{contrib/admin/options.py:149-215}\\\bottomrule
+\end{tabularx}}
+
+\field{Evidence} The app tells Django which widget to use for every file field:
+{\small\begin{verbatim}
+formfield_overrides = {FileField: {'widget': FileInput(attrs={'accept': [...]})}}
+\end{verbatim}}
+Probe test \code{test_4} shows that the admin form uses \code{FileInput}.
+Without this setting, Django would use its default widget, \code{AdminFileWidget}. So the widget really is swapped.\par
+\field{Diagram} \path{Part1/pattern_architecture/S2_upload_widget_choice.tex} (also \code{.pdf} and \code{.png}). The inheritance is simplified: both widgets are subclasses of \code{Widget}.
+\fig{0.66}{Part1/pattern_architecture/S2_upload_widget_choice.pdf}{Figure 5. Upload Widget Choice.}
+\field{Verification} Confirmed by team B5. The LLM run found this instance; we had missed it.
+We proved it with the probe test before adding it.
+We also considered Bridge and rejected it, because the app changes only the widget, not two separate class hierarchies.\par
+
+% =====================================================================
+\section{Part 2 Evolution and refactoring}
+Each change followed the same four steps, all logged in \path{Part2/changes/ChangeN/test_result.log}:
+(1) run all tests; (2) make a small refactoring and run the same tests again; (3) write the new tests and see them fail;
+(4) make the change and run all tests. Metrics always use lizard on \code{doc_manager/*.py}.
+The status words mean:
+\begin{itemize}
+\item \emph{preserved}: no change;
+\item \emph{modified}: a participant's behaviour or settings changed;
+\item \emph{extended}: a new participant joined;
+\item \emph{newly\_introduced}: a new collaboration appeared.
+\end{itemize}
+
+% ---------------------------------------------------------------- CH01
+\subsection*{CH01: Accept plain-text (.txt) documents}
+\field{Change and acceptance criteria} Admins want to publish short notices as \code{.txt} files. We can observe that:
+\begin{enumerate}
+\item a \code{.txt} file passes the upload check, and an \code{.exe} file is still rejected;
+\item a published \code{.txt} file is shown as \code{text/plain};
+\item the upload box tells the browser the allowed types;
+\item a file name in capitals such as \code{POLICY.PDF} works, and an unknown type gives ``404 Not Found'' instead of a crash.
+\end{enumerate}
+\field{Before and after} The change starts at commit \code{5943319} and ends at \code{8e5cd10}.
+In between are \code{cadf6cc} (new tests) and \code{c9978f5} (refactoring).
+Changed files: \path{doc_manager/models.py}, \path{admin.py}, \path{views.py} and the tests.
+The code after the change is in \path{Part2/changes/Change1/code/}.\par
+\field{Implementation and tests} We added one line, \code{'txt': 'text/plain'}, to the new \code{FILE_TYPES} table.
+We also wrote the upload box's type list as comma-separated text, and the page now gives 404 for unknown types.\\
+Test command: \code{python -m django test tests --settings=tests.test_settings}\\
+Result: 14/14 before, 14/14 after the refactoring, the 5 new tests failing before the change, and 19/19 after it.\par
+\field{Pattern effects}
+\begin{itemize}
+\item Upload File Checks: \emph{modified}. The checker is built from \code{FILE_TYPES} and now allows \code{txt}.
+\item Upload Widget Choice: \emph{modified}. \code{FileInput} gets a correct list of allowed types.
+\item Published Document Page: \emph{modified}. \code{get()} uses the table instead of if/else.
+\item Admin Read-only Fields: \emph{preserved}.
+\end{itemize}
+\fig{0.66}{Part2/diagrams/file_types_after_change1.pdf}{Figure 6. After CH01: one table configures both strategies (\path{Part2/diagrams/file_types_after_change1.tex}).}
+\field{Refactoring} \emph{Code smell:} Shotgun Surgery. The allowed file types were typed in four separate places.
+\emph{Technique:} Extract Constant and Replace Conditional with a lookup table, which leaves one table, \code{FILE_TYPES}.
+The diff is \path{Change1/refactoring.diff}. \emph{Proof that behaviour did not change:} we first wrote 3 tests for the page;
+all 14 tests passed before and after, and the HTML of the upload box stayed identical.\par
+
+\noindent\begin{minipage}{\linewidth}
+\field{Before/after metrics} Same tool and scope for both versions:\par\smallskip
+{\small\begin{tabular}{@{}lccccc@{}}\toprule
+ & Lines of code & Functions & Highest CC & Average CC & Tests passed\\\midrule
+Before (original) & 138 & 10 & 5 & 2.2 & 11/11\\
+After CH01 & 146 & 10 & 4 & 2.2 & 19/19\\\bottomrule
+\end{tabular}}
+\end{minipage}
+
+The highest complexity fell from 5 to 4, because \code{DocumentView.get} lost its if/else chain.
+
+% ---------------------------------------------------------------- CH02
+\subsection*{CH02: Open an older version of a document}
+\field{Change and acceptance criteria} People ask what a document said last year. We can observe that:
+\begin{enumerate}
+\item \code{see_document/<id>/} shows an older version, even when a newer version is published;
+\item a draft that was never published gives ``404 Not Found'';
+\item an unknown id gives ``404 Not Found'';
+\item \code{see_document/} still shows the published version.
+\end{enumerate}
+\field{Before and after} The change starts at commit \code{8e5cd10} and ends at \code{62acc26}, with \code{3018e42} (refactoring) in between.
+Changed files: \path{doc_manager/views.py}, a new test file, and the example project and README.
+The code after the change is in \path{Part2/changes/Change2/code/}.\par
+\field{Implementation and tests} A new class, \code{DocumentVersionView}, changes only the step \code{get_document()}.
+It returns the version with the given id, but only if that version was published at some time.
+Result: 19/19 before, 19/19 after the refactoring, the new test file failing before the change, and 22/22 after it.
+A screenshot is in \path{Change2/screenshot_old_version.png}.\par
+\field{Pattern effects}
+\begin{itemize}
+\item Published Document Page: \emph{extended}, with a new ConcreteClass \code{DocumentVersionView}.
+\item A new instance, \textbf{Document Choice Step} (Template Method), is \emph{newly\_introduced}. Here \code{DocumentView.get()} is the recipe and \code{get_document()} is the step (\path{views.py:7-36}).
+\item All other instances: \emph{preserved}.
+\end{itemize}
+The new collaboration sits inside the old one: \code{DocumentView} fills in Django's step and also owns the new recipe.
+\fig{0.6}{Part2/diagrams/views_after_change2.pdf}{Figure 7. After CH02 (\path{Part2/diagrams/views_after_change2.tex}).}
+\field{Refactoring} \emph{Code smell:} Long Method. \code{get()} chose the document, checked it, picked its type and sent it, all in one method.
+\emph{Technique:} Extract Method, which created \code{get_document()}.
+The diff is \path{Change2/refactoring.diff}. \emph{Proof:} the same 19 tests passed before and after.\par
+
+\noindent\begin{minipage}{\linewidth}
+\field{Before/after metrics} Same tool and scope for both versions:\par\smallskip
+{\small\begin{tabular}{@{}lccccc@{}}\toprule
+ & Lines of code & Functions & Highest CC & Average CC & Tests passed\\\midrule
+Before (after CH01) & 146 & 10 & 4 & 2.2 & 19/19\\
+After CH02 & 155 & 12 & 4 & 2.0 & 22/22\\\bottomrule
+\end{tabular}}
+\end{minipage}
+
+% ---------------------------------------------------------------- CH03
+\subsection*{CH03: Lock the file of a version once it has been published}
+\field{Change and acceptance criteria} Old documents must not be changed silently. We can observe that:
+\begin{enumerate}
+\item for a version that has been published, the file field is read-only;
+\item its edit form has no upload box;
+\item a draft can still be changed.
+\end{enumerate}
+\field{Before and after} The change starts at commit \code{62acc26} and ends at \code{145fcce}, with \code{6fb6088} (refactoring) in between.
+Changed files: \path{doc_manager/admin.py} and \path{tests/test_admin.py}. The code after the change is in \path{Part2/code/}.\par
+\field{Implementation and tests} The hook \code{get_readonly_fields()} now also returns \code{file_obj} when the version has a publication date.
+No other code changed, because Django's recipe already asks this hook.
+Result: 22/22 before, 22/22 after the refactoring, the 2 new ``locked'' tests failing before the change, and 25/25 after it.\par
+\field{Pattern effects} Admin Read-only Fields is \emph{modified}, because the hook gives a different answer.
+All other instances are \emph{preserved}. Diagram: \path{Part2/diagrams/admin_after_change3.tex}.\par
+\field{Refactoring} \emph{Code smell:} misleading name. The parameter \code{queryset} of \code{make_published()} holds one document, not a query set.
+\emph{Technique:} Rename Parameter, from \code{queryset} to \code{document}.
+The diff is \path{Change3/refactoring.diff}. \emph{Proof:} the same 22 tests passed before and after.\par
+
+\noindent\begin{minipage}{\linewidth}
+\field{Before/after metrics} Same tool and scope for both versions:\par\smallskip
+{\small\begin{tabular}{@{}lccccc@{}}\toprule
+ & Lines of code & Functions & Highest CC & Average CC & Tests passed\\\midrule
+Before (after CH02) & 155 & 12 & 4 & 2.0 & 22/22\\
+After CH03 & 158 & 12 & 4 & 2.08 & 25/25\\\bottomrule
+\end{tabular}}
+\end{minipage}
+
+\subsection{Updated pattern counts}
+\begin{center}{\small\begin{tabular}{@{}lcccccc@{}}\toprule
+Snapshot & Pattern & Instances & Concrete & Unique & Rejected & Uncertain\\
+ & types & (TM / Strategy) & classes & symbols & & \\\midrule
+Original & 2 & 4 (2 / 2) & 4 & 21 & 7 & 0\\
+After CH01 & 2 & 4 (2 / 2) & 4 & 22 & 7 & 0\\
+After CH02 & 2 & 5 (3 / 2) & 5 & 25 & 7 & 0\\
+After CH03 & 2 & 5 (3 / 2) & 5 & 25 & 7 & 0\\\bottomrule
+\end{tabular}}\end{center}
+
+Each instance keeps its name for as long as its collaboration continues. The only new instance is Document Choice Step (CH02).
+No instance was replaced or removed. Data files: \path{Part2/pattern_evalution.csv} and \path{Part2/Pattern_count.csv}.\par
+\field{Interpretation}
+\begin{itemize}
+\item \emph{Benefits.} The patterns kept every change small. After the refactoring, CH01 was one table entry.
+CH02 was a 5-line class that changes one step. CH03 was 3 lines in a hook that Django already calls.
+\item \emph{Trade-offs.} The code grew from 138 to 158 lines, mostly because of new features, so more lines do not mean a worse design.
+\code{DocumentView} now has two roles, which a new reader must understand. Hooks based on inheritance also tie the app to Django's classes.
+\item \emph{Limitations.} The admin search box of the original app still crashes, because it names a field that does not exist. We documented this but did not change it.
+\end{itemize}
+
+% =====================================================================
+\section{Part 3 Cross-language comparison}
+\field{Selected instances} We chose one instance for each pattern type:
+\begin{itemize}
+\item \textbf{Published Document Page} for Template Method. It is the app's main job and is easy to separate from Django.
+\item \textbf{Upload File Checks} for Strategy. It is the app's main safety rule and needs no HTML.
+\end{itemize}
+
+\field{Common specifications} The full specification is in \path{Part3/test-cases/SPEC.md}.
+\begin{itemize}
+\item \emph{Problem 1.} The input is a request method and a list of versions. The output is ``405 Method Not Allowed'' for anything that is not GET,
+``404 Not Found'' if no version is published, and otherwise ``200'' followed by the file type.
+\item \emph{Problem 2.} The input is a file name, type, size and size limit. The checks run in this order: extension (through the strategy), type, size.
+The output is the first error found, or ``OK''.
+\item \emph{Shared fixtures.} \path{document_page_cases.txt} has 7 cases and \path{upload_check_cases.txt} has 8 cases. All four languages use the same files.
+\end{itemize}
+
+\field{Implementations} Each language folder holds the pattern code, a separate test runner and a README.
+The folders are \path{Part3/template_method_document_page/<language>/} and \path{Part3/strategy_upload_check/<language>/}.
+\code{python Part3/run_all.py} builds, tests, times and measures all of them.
+
+{\small\begin{tabularx}{\linewidth}{@{}lP{38mm}L@{}}\toprule
+Language & Version & Test command (problem 1; problem 2 is the same with its own file names)\\\midrule
+Java & Java 25 & \code{javac -d build DocumentPage.java TestDocumentPage.java}, then \code{java -cp build TestDocumentPage}\\
+Python & CPython 3.11.9 & \code{python test_document_page.py}\\
+JavaScript & Node.js 24.17.0 & \code{node testDocumentPage.js}\\
+C++ & clang 21.1.0, C++17 & compile \code{test_document_page.cpp} with \code{-std=c++17 -O2}, then run the program\\\bottomrule
+\end{tabularx}}
+
+\field{Actual results} All 8 programs passed every case: 7 of 7 for problem 1 and 8 of 8 for problem 2, in all four languages.
+The logs are in \path{Part3/evidence/}. Nothing was left unrun.\par
+
+\field{Static and dynamic comparison} LOC counts the lines of the pattern file only, and CC is the highest complexity of one function.
+Time is the median of 5 runs of the whole test program, after 1 warm-up run.
+All values are also recorded in \path{Part3/llm/pattern_crosslanguage.csv}.
+\begin{center}{\small\begin{tabular}{@{}lrrrrrr@{}}\toprule
+ & \multicolumn{3}{c}{Template Method (7 cases)} & \multicolumn{3}{c}{Strategy (8 cases)}\\\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Language & LOC & Max CC & Time (ms) & LOC & Max CC & Time (ms)\\\midrule
+Python & 20 & 3 & 73.2 & 31 & 5 & 79.1\\
+JavaScript & 28 & 3 & 80.2 & 40 & 5 & 78.7\\
+Java & 30 & 3 & 201.8 & 51 & 5 & 224.7\\
+C++ & 38 & 3 & 13.4 & 63 & 5 & 12.5\\\bottomrule
+\end{tabular}}\end{center}
+
+\field{Comparison}
+\begin{itemize}
+\item \emph{Same structure.} Every language has the same classes: \code{View} with \code{DocumentPage}, and \code{UploadField} with a list of validators.
+\item \emph{Template Method uses inheritance.} Java (\code{abstract}, \code{final}) and C++ (pure virtual function) catch a missing step at compile time.
+Python and JavaScript only catch it when the program runs (\path{Part3/llm/missing_method_probe.log}).
+\item \emph{Strategy uses composition.} Java declares an interface and C++ an abstract class. Python and JavaScript need no declaration, because any object with a \code{check()} method works.
+\item \emph{Size and speed.} The logic has the same complexity in every language. Code length grows with the amount of type declarations, from Python to C++.
+Time is mostly start-up cost: the compiled C++ program is fastest and the Java virtual machine is slowest.
+\end{itemize}
+
+\field{Technology discussion}
+\begin{itemize}
+\item The GoF book describes Template Method as a fixed ``skeleton of an algorithm'' whose steps subclasses can change, and Strategy as a family of ``interchangeable'' algorithms [2].
+\item Django uses both ideas: \code{dispatch()} chooses the method in class-based views [3], and model fields run a list of validators [4].
+\item Statically typed languages can force a step to be written: abstract methods in Java [6] and pure virtual functions in C++ [7].
+\item Python offers this only as an option (\code{abc} [8]). JavaScript has no abstract methods [9], so both rely on run-time errors, just as Django's ``any callable'' validators do.
+\end{itemize}
+
+% =====================================================================
+\section{LLM records and human verification}
+\field{Run and model} Claude Opus 5.5 (\code{claude-opus-5-5}) through the Claude Code command-line tool 2.1.287, on the student's Claude Pro plan (publicly available).
+The model had no tools and no project files. It saw only our saved prompt and input.
+There was one run per part on 6 October 2026 (UTC): Part 1 at 17:16, Part 2 at 18:44 and Part 3 at 18:54.
+The exact commands are in each \path{run_info.txt}.\par
+\field{Inputs and outputs}
+\begin{itemize}
+\item \emph{Prompts:} \path{Part1/Part1_prompt.txt}, \path{Part2/Part2_prompt.text} and \path{Part3/llm/part3_prompt.txt}.
+\item \emph{Inputs:} the source code at commit \code{5943319} with line numbers (Parts 1 and 2), and the Part 3 specification with its test cases.
+\item \emph{Outputs:} saved unchanged in \path{output_raw.json} and \path{output.md}, in the \path{llm/} folder of each part.
+\item \emph{Summaries:} \path{Part1/llm.csv}, \path{Part2/llm.csv} and \path{Part3/llm/llm.csv}.
+\end{itemize}
+\field{Claims and evaluation} Team B5 checked every claim against the source code, the tests or a probe (\path{verification.md} in each \path{llm/} folder).
+
+{\small\begin{tabularx}{\linewidth}{@{}lcccL@{}}\toprule
+Part & Correct & Partly & Wrong & Main correction or use\\\midrule
+Part 1 (14 claims) & 11 & 1 & 2 & Wrong: a Template Method on \code{clean()}, and a total of 9 types (ours is 2). Used: the missed Upload Widget Choice, after a probe test.\\
+Part 2 (15 claims) & 11 & 3 & 1 & Wrong: ``CH01 needs a database migration'' (our probe found none). Used: the warning that CH02 showed drafts, which we fixed.\\
+Part 3 (9 claims) & 8 & 1 & 0 & Partly right: the expected run times (the order was right).\\\bottomrule
+\end{tabularx}}
+
+No claim was marked ``cannot confirm''.\par
+\field{Generated code} Only the Part 3 run produced code: 8 programs, in \path{Part3/llm/generated_code/}.
+We ran them without changes on our shared test cases, and all 8 passed (\path{Part3/llm/generated_code_test.log}).
+We did not use this code as our own programs.
+An AI coding assistant (Claude Code) also helped us prepare code, scripts and drafts; we ran or checked every result.\par
+
+% =====================================================================
+\section{Findings, contributions and references}
+\field{Findings}
+\begin{itemize}
+\item This small app uses 2 design patterns in 4 places. In each one, Django provides the fixed part and the app fills in the rest.
+\item The patterns made change easy. Each change touched only one table, one step or one hook, and all 25 tests pass at the end.
+\item Doing a small refactoring first, with tests before and after, kept every change safe.
+\item We found three problems in the original app:
+  \begin{itemize}
+  \item the page crashed for other file types (fixed in CH01);
+  \item the upload box's type list was ignored by browsers (fixed in CH01);
+  \item the admin search crashes (documented only).
+  \end{itemize}
+\item Limitations: we studied one small app, most patterns come from the framework, and the run times depend on our PC.
+\end{itemize}
+
+\noindent\begin{minipage}{\linewidth}
+\field{Contributions}\par\smallskip
+{\small\begin{tabularx}{\linewidth}{@{}P{32.5mm}P{28mm}P{12mm}L@{}}\toprule
+Roll number & Name & Batch & Actual contribution (source and evidence)\\\midrule
+AM.SC.U4CSE23330 & Raaghavan M S & CSE-D & App set-up and architecture; Part 1 discovery, probe tests, records and diagrams (\path{Part1/}, \path{data/}); Part 1 LLM check; Change 1.\\
+AM.SC.U4CSE23368 & V Sriman Vashishta & CSE-D & Changes 2 and 3 with tests and metrics (\path{Part2/}); Part 3 programs and test cases (\path{Part3/}); Part 2 and 3 LLM checks; slides.\\\midrule
+\multicolumn{3}{@{}l}{Both students} & Pattern counts and evolution data, README, this report, final review.\\\bottomrule
+\end{tabularx}}
+\end{minipage}
+
+\field{References}
+{\raggedright\begin{enumerate}[itemsep=2pt]\small
+\item ImpiCode, \code{doc_manager} 1.0.2, MIT licence. \url{https://github.com/impicode/doc_manager} (accessed 6 October 2026).
+\item E.~Gamma, R.~Helm, R.~Johnson and J.~Vlissides, \emph{Design Patterns: Elements of Reusable Object-Oriented Software}, Addison-Wesley, 1994.
+\item Django 4.1 documentation, ``Introduction to class-based views''. \url{https://docs.djangoproject.com/en/4.1/topics/class-based-views/intro/}
+\item Django 4.1 documentation, ``Validators'', ``Widgets'' and ``The Django admin site''. \url{https://docs.djangoproject.com/en/4.1/ref/}
+\item M.~Fowler, \emph{Refactoring: Improving the Design of Existing Code}, 2nd edition, Addison-Wesley, 2018. \url{https://refactoring.com/catalog/}
+\item Oracle, \emph{The Java Language Specification}, Java SE 25, section 8.4.3 (abstract and final methods). \url{https://docs.oracle.com/javase/specs/}
+\item cppreference.com, ``Abstract class''. \url{https://en.cppreference.com/w/cpp/language/abstract_class}
+\item Python 3.11 documentation, ``abc: Abstract Base Classes''. \url{https://docs.python.org/3.11/library/abc.html}
+\item MDN Web Docs, ``Classes'' (JavaScript). \url{https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes}
+\item T.~Yin, \emph{lizard} 1.17.31, code complexity analyser. \url{https://github.com/terryyin/lizard}
+\item Anthropic, \emph{Claude Code} documentation. \url{https://docs.anthropic.com/en/docs/claude-code}
+\end{enumerate}\par}
+
+% =====================================================================
+\section{Team folder and datasets (take a screenshots from the GitHub repository— your team)}
+Our folder follows the ``Complete repository hierarchy'' of the instructions:
+{\footnotesize\begin{verbatim}
+B5/
+|-- README.md
+|-- B5_Report.pdf
+|-- B5_Report.tex
+|-- data/
+|   |-- code/                original application source
+|   |-- test_result/         test logs, probe test, environment, screenshot
+|-- Part1/
+|   |-- patterns.csv
+|   |-- Pattern_count.csv
+|   |-- pattern_architecture/  diagram source + image
+|   |-- Part1_prompt.txt
+|   |-- llm.csv              (llm/ holds the raw LLM files and our checks)
+|-- Part2/
+|   |-- code/                evolved application source
+|   |-- changes/
+|   |   |-- Change1/         requirement, diff, test result
+|   |   |-- Change2/         requirement, diff, test result
+|   |   |-- Change3/         requirement, diff, test result
+|   |-- pattern_evalution.csv
+|   |-- Pattern_count.csv
+|   |-- diagrams/            updated UML
+|   |-- Part2_prompt.text
+|   |-- llm.csv              (llm/ holds the raw LLM files and our checks)
+|-- Part3/
+|   |-- template_method_document_page/   java/ python/ javascript/ cpp/
+|   |-- strategy_upload_check/           java/ python/ javascript/ cpp/
+|   |-- test-cases/, evidence/, run_all.py
+|   |-- llm/
+|       |-- part3_prompt.txt
+|       |-- llm.csv
+|       |-- pattern_crosslanguage.csv
+|       |-- B5_slide.pdf
+\end{verbatim}}
+\IfFileExists{data/test_result/github_screenshot.png}{%
+\fig{0.9}{data/test_result/github_screenshot.png}{Figure 8. The B5 folder on GitHub.}}{%
+The GitHub screenshot will be added here after the folder is uploaded (\path{data/test_result/github_screenshot.png}).}
+
+\end{document}

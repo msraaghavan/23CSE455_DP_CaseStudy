@@ -1,0 +1,22 @@
+% Strategy - "Upload Widget Choice" (original code)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[djcls] (ff) at (0,0) {\textbf{forms.FileField} \\ \role{Context (Django)}
+  \nodepart{second} draws itself with its widget};
+\node[djcls] (w) at (7,0) {\textbf{Widget} \\ \role{Strategy (Django)}
+  \nodepart{second} render()};
+\node[djcls] (fi) at (5,-2.9) {\textbf{FileInput} \\ \role{ConcreteStrategy}
+  \nodepart{second} plain upload box};
+\node[djcls] (afw) at (9.4,-2.9) {\textbf{AdminFileWidget} \\ \role{ConcreteStrategy}
+  \nodepart{second} Django's default box};
+\node[appcls] (da) at (0,-2.9) {\textbf{DocumentAdmin} \\ \role{Client (app)}
+  \nodepart{second} formfield\_overrides};
+\draw[uses] (ff) -- node[lbl, above=2pt] {has a} (w);
+\draw[inherits] (fi) -- (w);
+\draw[inherits] (afw) -- (w);
+\draw[uses] (da) -- node[lbl, above=2pt] {chooses} (fi);
+\end{tikzpicture}
+\end{document}

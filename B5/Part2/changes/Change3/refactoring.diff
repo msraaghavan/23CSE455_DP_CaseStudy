@@ -1,0 +1,19 @@
+diff --git a/doc_manager/admin.py b/doc_manager/admin.py
+index 321b81c..af383ef 100644
+--- a/doc_manager/admin.py
++++ b/doc_manager/admin.py
+@@ -31,10 +31,10 @@ class DocumentAdmin(admin.ModelAdmin):
+             return self.readonly_fields + ('add_date', 'pub_date', 'published')
+         return self.readonly_fields
+ 
+-    def make_published(self, request, queryset):
+-        """Publishes document with id equal to queryset.pk."""
+-        if queryset:
+-            self.model.objects.set_published(queryset.pk)
++    def make_published(self, request, document):
++        """Publishes the given document."""
++        if document:
++            self.model.objects.set_published(document.pk)
+             self.message_user(request, _(
+                 "Document published"), messages.SUCCESS)
+         else:

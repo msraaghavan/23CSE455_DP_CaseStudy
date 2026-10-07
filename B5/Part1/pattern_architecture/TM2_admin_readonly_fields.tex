@@ -1,0 +1,14 @@
+% Template Method - "Admin Read-only Fields" (original code)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[djcls] (ma) {\textbf{ModelAdmin} \\ \role{AbstractClass (Django)}
+  \nodepart{second} changeform\_view() \role{-- the fixed recipe}\\ get\_readonly\_fields() \role{-- hook}};
+\node[appcls, below=1.3cm of ma] (da) {\textbf{DocumentAdmin} \\ \role{ConcreteClass (app)}
+  \nodepart{second} get\_readonly\_fields() \role{-- its own answer}};
+\draw[inherits] (da) -- (ma);
+\node[note, right=0.8cm of ma] {While building the edit page, the recipe\\ asks the hook which fields to lock.\\ The app locks the dates and ``published''.};
+\end{tikzpicture}
+\end{document}

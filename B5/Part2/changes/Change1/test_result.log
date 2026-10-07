@@ -1,0 +1,225 @@
+==================================================================
+STEP 1 - original code + new characterization tests for DocumentView (written before refactoring)
+commit: 5943319 + uncommitted working-tree changes
+time (UTC): 2026-10-06T17:22:48Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 14 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.172s
+
+OK
+
+==================================================================
+STEP 2 - after the CH01 refactoring (one FILE_TYPES table), same 14 tests
+commit: cadf6cc + uncommitted working-tree changes
+time (UTC): 2026-10-06T17:24:04Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 14 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.143s
+
+OK
+
+Extra behaviour check - HTML of the upload box (admin form), before vs after the refactoring:
+before: <input type="file" name="file_obj" accept="[&#x27;application/pdf&#x27;, &#x27;text/html&#x27;]" required id="id_file_obj">
+after:  <input type="file" name="file_obj" accept="[&#x27;application/pdf&#x27;, &#x27;text/html&#x27;]" required id="id_file_obj">
+result: IDENTICAL
+
+==================================================================
+STEP 3 - new CH01 tests run on the refactored code BEFORE the feature (expected: the new tests fail)
+commit: c9978f5 + uncommitted working-tree changes
+time (UTC): 2026-10-06T17:24:53Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 19 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... FAIL
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... FAIL
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ERROR
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ERROR
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ERROR
+
+======================================================================
+ERROR: test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 55, in test_capital_letters_extension
+    self.assertEqual(self.get_page()['Content-Type'], 'application/pdf')
+                     ^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 33, in get_page
+    response = TestView.as_view()(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 103, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 142, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\doc_manager\views.py", line 20, in get
+    content_type=FILE_TYPES[extension])
+                 ~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'PDF'
+
+======================================================================
+ERROR: test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 60, in test_other_file_type_gives_404
+    self.get_page()
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 33, in get_page
+    response = TestView.as_view()(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 103, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 142, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\doc_manager\views.py", line 20, in get
+    content_type=FILE_TYPES[extension])
+                 ~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'exe'
+
+======================================================================
+ERROR: test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 51, in test_txt_document
+    self.assertEqual(self.get_page()['Content-Type'], 'text/plain')
+                     ^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_views.py", line 33, in get_page
+    response = TestView.as_view()(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 103, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\views\generic\base.py", line 142, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\doc_manager\views.py", line 20, in get
+    content_type=FILE_TYPES[extension])
+                 ~~~~~~~~~~^^^^^^^^^^^
+KeyError: 'txt'
+
+======================================================================
+FAIL: test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_admin.py", line 59, in test_upload_box_lists_allowed_types
+    self.assertEqual(
+AssertionError: ['application/pdf', 'text/html'] != 'application/pdf,text/html,text/plain'
+
+======================================================================
+FAIL: test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_models.py", line 77, in test_correct_file_extension_txt
+    f.clean(
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\doc_manager\models.py", line 47, in clean
+    data = super(ContentTypeRestrictedFileField,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\db\models\fields\__init__.py", line 756, in clean
+    self.run_validators(value)
+  File "C:\Users\msraa\Downloads\DP Case Study\.venv\Lib\site-packages\django\db\models\fields\__init__.py", line 715, in run_validators
+    raise exceptions.ValidationError(errors)
+django.core.exceptions.ValidationError: ['File extension “txt” is not allowed. Allowed extensions are: pdf, html.']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\msraa\Downloads\DP Case Study\work\doc_manager\tests\test_models.py", line 82, in test_correct_file_extension_txt
+    self.fail()
+AssertionError: None
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.165s
+
+FAILED (failures=2, errors=3)
+
+==================================================================
+STEP 4 - after the CH01 feature (.txt documents accepted), all tests
+commit: c9978f5 + uncommitted working-tree changes
+time (UTC): 2026-10-06T17:25:14Z | Windows 11, Python 3.11.9, Django 4.1.13
+command: python -m django test tests -v 2 --settings=tests.test_settings
+------------------------------------------------------------------
+Found 19 test(s).
+System check identified no issues (0 silenced).
+test_changeform_view_get (tests.test_admin.AdminTestClass.test_changeform_view_get) ... ok
+test_get_readonly_fields (tests.test_admin.AdminTestClass.test_get_readonly_fields) ... ok
+test_make_published (tests.test_admin.AdminTestClass.test_make_published) ... ok
+test_upload_box_lists_allowed_types (tests.test_admin.AdminTestClass.test_upload_box_lists_allowed_types) ... ok
+test_correct_file_extension_html (tests.test_models.DocumentModelTestClass.test_correct_file_extension_html) ... ok
+test_correct_file_extension_pdf (tests.test_models.DocumentModelTestClass.test_correct_file_extension_pdf) ... ok
+test_correct_file_extension_txt (tests.test_models.DocumentModelTestClass.test_correct_file_extension_txt) ... ok
+test_publish_date (tests.test_models.DocumentModelTestClass.test_publish_date) ... ok
+test_published (tests.test_models.DocumentModelTestClass.test_published) ... ok
+test_published_10_docs (tests.test_models.DocumentModelTestClass.test_published_10_docs) ... ok
+test_published_2_docs (tests.test_models.DocumentModelTestClass.test_published_2_docs) ... ok
+test_to_big_size (tests.test_models.DocumentModelTestClass.test_to_big_size) ... ok
+test_wrong_file_extension (tests.test_models.DocumentModelTestClass.test_wrong_file_extension) ... ok
+test_capital_letters_extension (tests.test_views.DocumentViewTestClass.test_capital_letters_extension) ... ok
+test_html_document (tests.test_views.DocumentViewTestClass.test_html_document) ... ok
+test_nothing_published (tests.test_views.DocumentViewTestClass.test_nothing_published) ... ok
+test_other_file_type_gives_404 (tests.test_views.DocumentViewTestClass.test_other_file_type_gives_404) ... ok
+test_pdf_document (tests.test_views.DocumentViewTestClass.test_pdf_document) ... ok
+test_txt_document (tests.test_views.DocumentViewTestClass.test_txt_document) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.540s
+
+OK
+
+==================================================================
+Commit map (local branch 'case-study', see ../commits.txt):
+  step 1 tests were committed as  cadf6cc  (CH01: characterization tests)
+  step 2 code  was  committed as  c9978f5  (CH01 refactoring)
+  step 4 code  was  committed as  8e5cd10  (CH01 feature = after_change1)
+A line 'commit: X + uncommitted working-tree changes' above means: commit X plus the new, not yet committed work of that step.

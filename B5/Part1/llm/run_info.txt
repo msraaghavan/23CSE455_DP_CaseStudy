@@ -1,0 +1,16 @@
+LLM run - Part 1 (pattern discovery)
+model (as reported in output_raw.json "modelUsage"): claude-opus-5-5  (Claude Opus 5.5)
+tool: Claude Code CLI 2.1.287 in print mode (claude -p), the student's Claude Pro subscription (publicly available plan)
+started (UTC): 2026-10-06T17:16:27Z
+finished (UTC): 2026-10-06T17:18:09Z   (duration 96.7 s, 1 turn)
+session id: 85f56c5a-e656-4d9f-9223-5ed79ca48097
+tokens: input 4539, output 9491 (of which 6025 thinking)
+
+exact command (run from an EMPTY folder, so no project files or memory were visible to the model):
+  cat Part1/Part1_prompt.txt Part1/llm/input_source_5943319.txt > full_message.txt
+  claude -p --model claude-opus-5-5 --tools "" --strict-mcp-config --system-prompt "You are a helpful assistant." --no-session-persistence --output-format json < full_message.txt > output_raw.json
+
+--tools ""   : the model could not open files or run code; it saw only the prompt + the input file
+output.md    : the "result" field of output_raw.json, copied unchanged
+input        : input_source_5943319.txt = the app's files at commit 5943319 with line numbers
+               (doc_manager/*.py, the admin template, and example/our_app/*.py for context)

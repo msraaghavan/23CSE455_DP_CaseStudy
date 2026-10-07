@@ -1,0 +1,26 @@
+Probe: when does each language notice that a subclass forgot the step get()? (checks Part 3 LLM claim 6)
+Each program defines View with the step get() and a subclass Page that does NOT fill it in.
+
+=== Java: javac Probe.java
+Probe.java:2: error: Page is not abstract and does not override abstract method get() in View
+class Page extends View { }
+^
+1 error
+exit code: 1  -> found at COMPILE time
+
+=== C++: zig c++ -std=c++17 probe.cpp
+probe.cpp:4:19: error: variable type 'Page' is an abstract class
+probe.cpp:2:127: note: unimplemented pure virtual method 'get' in 'Page'
+1 error generated.
+-> found at COMPILE time
+
+=== Python: python probe.py
+ABC version - error when the object is created: Can't instantiate abstract class Page with abstract method get
+plain version (our snippet) - object created
+plain version - error only when dispatch() runs: NotImplementedError
+-> found at RUN time
+
+=== JavaScript: node probe.js
+object created
+Error: a subclass must fill in get()
+-> found at RUN time, only when get() is called

@@ -1,0 +1,15 @@
+% Strategy - "Upload File Checks" (original code)
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[appcls] (field) {\textbf{ContentTypeRestrictedFileField} \\ \role{Context (app, a Django Field)}
+  \nodepart{second} validators = [ a checker ]\\ clean() runs every checker};
+\node[plain, dashed, right=1.6cm of field] (strat) {\textbf{validator(value)} \\ \role{Strategy: any checker function}\\ \role{(not a declared class)}};
+\node[djcls, below=1.2cm of strat] (fev) {\textbf{FileExtensionValidator} \\ \role{ConcreteStrategy (Django)}
+  \nodepart{second} allows only pdf, html};
+\draw[uses] (field) -- node[lbl, above=2pt] {calls} (strat);
+\draw[inherits, dashed] (fev) -- (strat);
+\end{tikzpicture}
+\end{document}

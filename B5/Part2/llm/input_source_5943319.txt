@@ -1,0 +1,237 @@
+--- file: doc_manager/__init__.py ---
+(empty file)
+
+--- file: doc_manager/apps.py ---
+   1| from django.apps import AppConfig
+   2| 
+   3| 
+   4| class DocumentManagerConfig(AppConfig):
+   5|     default_auto_field = 'django.db.models.BigAutoField'
+   6|     name = 'doc_manager'
+
+--- file: doc_manager/version.py ---
+   1| __version__ = "1.0.2"
+
+--- file: doc_manager/models.py ---
+   1| # *
+   2| # * (c) ImpiCode Sp. z o.o.
+   3| # * Stamp: MAL 02.06.2021
+   4| # *
+   5| 
+   6| import os
+   7| 
+   8| from datetime import date
+   9| from django.conf import settings
+  10| from django.core.validators import FileExtensionValidator
+  11| from django.db import models
+  12| from django.db.models import FileField
+  13| from django.forms import forms
+  14| from django.template.defaultfilters import filesizeformat
+  15| from django.utils.translation import gettext_lazy as _
+  16| 
+  17| 
+  18| class ContentTypeRestrictedFileField(FileField):
+  19|     """FileField only for files in html and pdf format."""
+  20|     def __init__(self, content_types=['application/pdf', 'text/html'],
+  21|                  max_upload_size=None, upload_to=None, **kwargs):
+  22|         self.content_types = content_types
+  23|         self.max_upload_size = (
+  24|             max_upload_size
+  25|             if max_upload_size
+  26|             else getattr(settings, 'MAX_FILE_UPLOAD_SIZE', 5242880)
+  27|         )
+  28|         kwargs['validators'] = [FileExtensionValidator(['pdf', 'html'])]
+  29|         super(ContentTypeRestrictedFileField, self).__init__(**kwargs)
+  30|         self.upload_to = (
+  31|             upload_to
+  32|             if upload_to
+  33|             else getattr(settings, 'FILE_UPLOAD_TO', 'documents/%Y/%m/%d/')
+  34|         )
+  35| 
+  36|     def clean(self, *args, **kwargs):
+  37|         data = super(ContentTypeRestrictedFileField,
+  38|                      self).clean(*args, **kwargs)
+  39| 
+  40|         file = data.file
+  41| 
+  42|         if file.content_type not in self.content_types:
+  43|             raise forms.ValidationError(_('Filetype not supported.'))
+  44| 
+  45|         if file.size > self.max_upload_size:
+  46|             raise forms.ValidationError(
+  47|                 _('Please keep filesize under %s. Current filesize %s')
+  48|                 % (
+  49|                     filesizeformat(self.max_upload_size),
+  50|                     filesizeformat(file.size),
+  51|                 )
+  52|             )
+  53| 
+  54|         return data
+  55| 
+  56| 
+  57| class DocumentManager(models.Manager):
+  58|     def published(self):
+  59|         return self.model.objects.filter(published=True).first()
+  60| 
+  61|     def set_published(self, pk):
+  62|         """
+  63|         Sets document with id equal to pk to published and all currently
+  64|         published documents are unpublished.
+  65|         """
+  66|         obj = self.model.objects.get(pk=pk)
+  67|         self.model.objects.filter(published=True).update(published=False)
+  68|         obj.publish()
+  69| 
+  70| 
+  71| class DocumentModel(models.Model):
+  72|     add_date = models.DateField(auto_now_add=True, verbose_name=_('Add date'))
+  73|     pub_date = models.DateField(null=True, blank=True, verbose_name=_('Publication date'))
+  74|     published = models.BooleanField(default=False, verbose_name=_('Published'))
+  75|     file_obj = ContentTypeRestrictedFileField(
+  76|                     upload_to='documents/%Y/%m/%d/',
+  77|                     verbose_name=_('File')
+  78|                 )
+  79|     objects = DocumentManager()
+  80| 
+  81|     class Meta:
+  82|         abstract = True
+  83|         ordering = ['pub_date']
+  84| 
+  85|     def publish(self):
+  86|         self.published = True
+  87|         self.pub_date = date.today()
+  88|         self.save()
+  89| 
+  90|     def filename(self):
+  91|         return os.path.basename(self.file_obj.name)
+
+--- file: doc_manager/admin.py ---
+   1| from django.contrib import admin, messages
+   2| from django.contrib.admin.options import (
+   3|                                             unquote,
+   4|                                             csrf_protect_m,
+   5|                                             HttpResponseRedirect,
+   6|                                             )
+   7| from django.utils.translation import gettext as _
+   8| from django.forms.widgets import FileInput
+   9| from django.db.models import FileField
+  10| 
+  11| 
+  12| class DocumentAdmin(admin.ModelAdmin):
+  13|     """Admin class for publishing documents with a 'Publish' button."""
+  14|     exclude = ('pub_date', 'published')
+  15|     change_form_template = 'admin_change_form_documents.html'
+  16|     list_display = ('filename', 'add_date', 'pub_date', 'published')
+  17|     ordering = ['-published', 'pub_date']
+  18|     model = None
+  19|     search_fields = ['file']
+  20|     list_filter = ['add_date']
+  21|     formfield_overrides = {
+  22|         FileField: {
+  23|             'widget': FileInput(attrs={'accept': ['application/pdf', 'text/html']})
+  24|         },
+  25|     }
+  26| 
+  27|     def get_readonly_fields(self, request, obj=None):
+  28|         if obj:
+  29|             return self.readonly_fields + ('add_date', 'pub_date', 'published')
+  30|         return self.readonly_fields
+  31| 
+  32|     def make_published(self, request, queryset):
+  33|         """Publishes document with id equal to queryset.pk."""
+  34|         if queryset:
+  35|             self.model.objects.set_published(queryset.pk)
+  36|             self.message_user(request, _(
+  37|                 "Document published"), messages.SUCCESS)
+  38|         else:
+  39|             self.message_user(request, _(
+  40|                 "Document not published"), messages.ERROR)
+  41| 
+  42|     @csrf_protect_m
+  43|     def changeform_view(self, request, object_id=None, form_url='',
+  44|                         extra_context=None):
+  45|         """
+  46|         If method is POST publishes document with id equal to object_id
+  47|         and if method is GET redirects to admin view of document.
+  48|         """
+  49|         if request.method == 'POST' and '_make_published' in request.POST:
+  50|             obj = self.get_object(request, unquote(object_id))
+  51|             self.make_published(request, obj)
+  52|             return HttpResponseRedirect(request.get_full_path())
+  53| 
+  54|         return admin.ModelAdmin.changeform_view(
+  55|             self, request,
+  56|             object_id=object_id,
+  57|             form_url=form_url,
+  58|             extra_context=extra_context,
+  59|         )
+
+--- file: doc_manager/views.py ---
+   1| from django.views import View
+   2| from django.http import Http404, FileResponse
+   3| 
+   4| 
+   5| class DocumentView(View):
+   6|     model = None
+   7| 
+   8|     def get(self, request):
+   9|         """Returns currently published file."""
+  10|         document_model = self.model.objects.published()
+  11|         if document_model is None:
+  12|             raise Http404
+  13|         file = document_model.file_obj
+  14|         if file is None:
+  15|             raise Http404
+  16|         filename = document_model.filename()
+  17|         if filename.endswith('.html'):
+  18|             response = FileResponse(file, as_attachment=False,
+  19|                                     content_type='text/html')
+  20|         elif filename.endswith('.pdf'):
+  21|             response = FileResponse(file, as_attachment=False,
+  22|                                     content_type='application/pdf')
+  23|         return response
+
+--- file: doc_manager/templates/admin_change_form_documents.html ---
+   1| {% extends 'admin/change_form.html' %}
+   2| {% comment "" %}
+   3| (c) ImpiCode Sp. z o.o.
+   4| Stamp: MAL 2021-06-04
+   5| {% endcomment %}
+   6| {% load i18n %}
+   7| 
+   8| {% block after_related_objects %}
+   9| {% if change %}
+  10|     {% if not adminform.form.instance.published %}
+  11|         <input type="submit" name="_make_published" value="{% trans 'Publish' %}"
+  12|             class="grp-button grp-default" style="margin-bottom: 35px">
+  13|     {% endif %}
+  14| {% endif %}
+  15| {% endblock %}
+
+--- file: example/our_app/models.py ---
+   1| from doc_manager.models import DocumentModel
+   2| 
+   3| 
+   4| class OurModel(DocumentModel):
+   5|     pass
+
+--- file: example/our_app/admin.py ---
+   1| from django.contrib import admin
+   2| from doc_manager.admin import DocumentAdmin
+   3| 
+   4| from .models import OurModel
+   5| 
+   6| 
+   7| @admin.register(OurModel)
+   8| class OurAdmin(DocumentAdmin):
+   9|     model = OurModel
+
+--- file: example/our_app/views.py ---
+   1| from doc_manager.views import DocumentView
+   2| 
+   3| from .models import OurModel
+   4| 
+   5| 
+   6| class OurView(DocumentView):
+   7|     model = OurModel
+

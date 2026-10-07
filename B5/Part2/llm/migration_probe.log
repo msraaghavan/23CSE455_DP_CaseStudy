@@ -1,0 +1,26 @@
+Probe for two Part 2 LLM claims about Django migrations (CH01). Windows 11, Python 3.11.9, Django 4.1.13.
+Setup: a copy of data/code (original); the example app gets its first migration, like a real project would have.
+
+$ python manage.py makemigrations our_app
+Migrations for 'our_app':
+  example\our_app\migrations\0001_initial.py
+    - Create model OurModel
+
+--- 1) put the REFACTORED models.py (commit c9978f5, CH01 refactoring only) in place
+$ python manage.py makemigrations --check --dry-run
+No changes detected
+exit code: 0
+
+--- 2) put the CH01 FEATURE models.py (commit 8e5cd10, 'txt' added) in place
+$ python manage.py makemigrations --check --dry-run
+No changes detected
+exit code: 0
+
+--- 3) why no change is detected: the saved migration does contain the old validator list ...
+3:import django.core.validators
+44:                        validators=[
+45:                            django.core.validators.FileExtensionValidator(
+... but when Django rebuilds the field from the migration, ContentTypeRestrictedFileField.__init__
+    replaces the validators it is given with the current list (models.py, 'kwargs["validators"] = ...'):
+    field rebuilt with validators [pdf, html] really has: ['pdf', 'html', 'txt']
+Result: the CH01 change needs no new migration in projects that use the app.

@@ -1,0 +1,16 @@
+Template Method - Published Document Page - cpp
+working folder: Part3/template_method_document_page/cpp
+runtime/compiler: clang 21.1.0 (ziglang 0.16.0, -std=c++17 -O2)
+command: python -m ziglang c++ -std=c++17 -O2 -o test_document_page.exe test_document_page.cpp && test_document_page.exe
+(build/ and the .exe were made in a temporary folder that was deleted afterwards)
+compile exit code: 0
+--- test output ---
+PASS GET policy_v1.pdf:no,policy_v2.pdf:yes -> 200 application/pdf
+PASS GET terms.html:yes -> 200 text/html
+PASS GET old.html:no,new.pdf:yes -> 200 application/pdf
+PASS GET draft.pdf:no -> 404 Not Found
+PASS GET - -> 404 Not Found
+PASS POST terms.html:yes -> 405 Method Not Allowed
+PASS DELETE terms.html:yes -> 405 Method Not Allowed
+passed 7/7
+--- exit code: 0

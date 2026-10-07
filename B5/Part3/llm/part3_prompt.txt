@@ -1,0 +1,24 @@
+You are helping with a university case study on design patterns.
+
+Below are the specification of two small problems taken from a Django app and
+their shared test-case files.
+
+Task:
+1. Write each problem in Java, Python, JavaScript (Node.js) and C++17. Keep the
+   pattern (Template Method for problem 1, Strategy for problem 2) and use the
+   role names from the specification.
+2. Each program reads the test-case file given as its first command-line argument,
+   runs every case, prints PASS or FAIL for each case and, as the last line,
+   "passed X/Y". It exits with code 0 only if all cases passed. For this answer,
+   put the pattern code and the test runner in one file per language.
+3. Then give a short table comparing the 4 languages: how each language expresses
+   the abstract role (AbstractClass / Strategy), whether a missing method is found
+   at compile time or at run time, and one other difference you expect
+   (for example code length or start-up time).
+
+Format: before every program write one line "FILE: <problem>/<language>/<file name>"
+(problem = document_page or upload_check; language = java, python, javascript or cpp),
+then one fenced code block. In Java the public class must match the file name.
+Keep the code short.
+
+=== SPECIFICATION AND TEST CASES ===

@@ -1,0 +1,20 @@
+Environment used for every run in this folder (recorded 2026-10-06)
+OS: Microsoft Windows [Version 10.0.26300.9550]
+Python: 3.11.9 (CPython, venv)
+Packages (pip freeze):
+asgiref==3.12.1
+Django==4.1.13
+lizard==1.17.31
+pathspec==1.1.1
+Pygments==2.21.0
+pymupdf==1.28.2
+sqlparse==0.6.0
+tzdata==2026.5
+ziglang==0.16.0
+
+Database: SQLite 3.45.1 (Django default; tests use an in-memory database)
+Java: java version "25" 2025-09-16 LTS
+Node.js: v24.17.0
+C++: clang version 21.1.0  (clang shipped in the ziglang pip package)
+git: git version 2.56.0.windows.2
+LaTeX: MiKTeX-pdfTeX 4.18 (MiKTeX 24.1)

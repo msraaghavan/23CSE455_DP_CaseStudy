@@ -1,0 +1,20 @@
+diff --git a/doc_manager/views.py b/doc_manager/views.py
+index 6abeaa9..dc1913c 100644
+--- a/doc_manager/views.py
++++ b/doc_manager/views.py
+@@ -7,9 +7,13 @@ from .models import FILE_TYPES
+ class DocumentView(View):
+     model = None
+ 
++    def get_document(self):
++        """Returns the document to show: the published one."""
++        return self.model.objects.published()
++
+     def get(self, request):
+-        """Returns currently published file."""
+-        document_model = self.model.objects.published()
++        """Returns the file of the document chosen by get_document()."""
++        document_model = self.get_document()
+         if document_model is None:
+             raise Http404
+         file = document_model.file_obj

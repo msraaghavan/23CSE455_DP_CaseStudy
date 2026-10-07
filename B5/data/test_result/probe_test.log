@@ -1,0 +1,23 @@
+Probe test run - original code (commit 5943319), Windows 11, Python 3.11.9, Django 4.1.13
+Date: 2026-10-06T18:54:59Z
+Command (in data/code): python ../test_result/probe_test.py
+-----
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 10 test(s).
+System check identified no issues (0 silenced).
+test_1_dispatch_calls_the_get_step (probe_test.ProbeTests.test_1_dispatch_calls_the_get_step) ... ok
+test_1_dispatch_refuses_other_methods (probe_test.ProbeTests.test_1_dispatch_refuses_other_methods) ... ok
+test_2_admin_recipe_calls_the_hook (probe_test.ProbeTests.test_2_admin_recipe_calls_the_hook) ... ok
+test_3_field_holds_a_validator_strategy (probe_test.ProbeTests.test_3_field_holds_a_validator_strategy) ... ok
+test_3_swapping_the_strategy_changes_the_rule (probe_test.ProbeTests.test_3_swapping_the_strategy_changes_the_rule) ... ok
+test_3_the_strategy_rejects_txt (probe_test.ProbeTests.test_3_the_strategy_rejects_txt) ... ok
+test_4_admin_swaps_the_upload_widget (probe_test.ProbeTests.test_4_admin_swaps_the_upload_widget) ... ok
+test_4_without_the_choice_django_uses_its_default_widget (probe_test.ProbeTests.test_4_without_the_choice_django_uses_its_default_widget) ... ok
+test_finding_admin_search_uses_a_wrong_field_name (probe_test.ProbeTests.test_finding_admin_search_uses_a_wrong_field_name) ... ok
+test_finding_view_crashes_for_other_file_types (probe_test.ProbeTests.test_finding_view_crashes_for_other_file_types) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.021s
+
+OK
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...

@@ -1,0 +1,29 @@
+% Architecture of doc_manager (original code, commit 5943319): who talks to whom.
+\documentclass[border=8pt]{standalone}
+\usepackage{tikz}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+\node[plain] (visitor) at (0, 1.6)  {\textbf{Visitor}\\ \role{web browser}};
+\node[plain] (admin)   at (0,-1.6)  {\textbf{Admin}\\ \role{web browser}};
+\node[plain, fill=appC] (view)  at (5, 1.6)  {\textbf{DocumentView}\\ \role{shows the document}};
+\node[plain, fill=appC] (adm)   at (5,-1.6)  {\textbf{DocumentAdmin}\\ \role{upload and publish}};
+\node[plain, fill=appC] (model) at (10, 0)   {\textbf{DocumentModel}\\ \role{one row per version}};
+\node[plain, fill=djangoC] (db) at (14.8, 0)   {\textbf{Database + files}\\ \role{SQLite, media/}};
+\begin{scope}[on background layer]
+  \node[draw, dashed, rounded corners, fit=(view)(adm)(model), inner sep=8pt,
+        label={[font=\footnotesize]above:doc\_manager app}] {};
+\end{scope}
+\draw[uses] (visitor) -- node[num] {1} (view);
+\draw[uses] (view) -- node[num] {2} (model);
+\draw[uses] (model) -- node[num] {3} (db);
+\draw[uses] (view.north) to[out=160, in=20] node[num] {4} (visitor.north);
+\draw[uses] (admin) -- node[num] {a} (adm);
+\draw[uses] (adm) -- node[num] {b} (model);
+\node[note, anchor=north west, text width=17.6cm] at (-1.6,-2.8)
+ {\textbf{Visitor:} \textbf{1} opens the page $\rightarrow$ \textbf{2} the view asks for the published version
+  $\rightarrow$ \textbf{3} its row and file are read $\rightarrow$ \textbf{4} the file is sent back\\[2pt]
+  \textbf{Admin:} \textbf{a} uploads a version or clicks ``Publish'' $\rightarrow$ \textbf{b} the file is checked and
+  saved, or this version becomes the published one};
+\end{tikzpicture}
+\end{document}

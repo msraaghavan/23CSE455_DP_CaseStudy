@@ -1,0 +1,45 @@
+diff --git a/doc_manager/admin.py b/doc_manager/admin.py
+index af383ef..f31fd14 100644
+--- a/doc_manager/admin.py
++++ b/doc_manager/admin.py
+@@ -28,7 +28,11 @@ class DocumentAdmin(admin.ModelAdmin):
+ 
+     def get_readonly_fields(self, request, obj=None):
+         if obj:
+-            return self.readonly_fields + ('add_date', 'pub_date', 'published')
++            fields = self.readonly_fields + ('add_date', 'pub_date', 'published')
++            if obj.pub_date:
++                # once published, the file is history: upload a new version
++                fields += ('file_obj',)
++            return fields
+         return self.readonly_fields
+ 
+     def make_published(self, request, document):
+diff --git a/tests/test_admin.py b/tests/test_admin.py
+index 21d70f2..bba410f 100644
+--- a/tests/test_admin.py
++++ b/tests/test_admin.py
+@@ -43,6 +43,23 @@ class AdminTestClass(TestCase):
+             ('add_date', 'pub_date', 'published')
+         )
+ 
++    def test_file_locked_after_publishing(self):
++        doc = TestModel.objects.create()
++        TestModel.objects.set_published(doc.pk)
++        doc = TestModel.objects.get(pk=doc.pk)
++        self.assertIn('file_obj', self.site.get_readonly_fields(None, doc))
++
++    def test_file_editable_for_draft(self):
++        doc = TestModel.objects.create()
++        self.assertNotIn('file_obj', self.site.get_readonly_fields(None, doc))
++
++    def test_published_file_not_in_edit_form(self):
++        doc = TestModel.objects.create()
++        TestModel.objects.set_published(doc.pk)
++        doc = TestModel.objects.get(pk=doc.pk)
++        form = self.site.get_form(self.factory.get(''), doc)
++        self.assertNotIn('file_obj', form.base_fields)
++
+     def test_make_published(self):
+         doc1 = TestModel.objects.create()
+         doc2 = TestModel.objects.create()

@@ -1,0 +1,56 @@
+== original (data/code) ==
+  data/code/doc_manager/admin.py                               get_readonly_fields          NLOC=  4 CCN=2
+  data/code/doc_manager/admin.py                               make_published               NLOC=  8 CCN=2
+  data/code/doc_manager/admin.py                               changeform_view              NLOC= 12 CCN=3
+  data/code/doc_manager/models.py                              __init__                     NLOC= 15 CCN=3
+  data/code/doc_manager/models.py                              clean                        NLOC= 15 CCN=3
+  data/code/doc_manager/models.py                              published                    NLOC=  2 CCN=1
+  data/code/doc_manager/models.py                              set_published                NLOC=  4 CCN=1
+  data/code/doc_manager/models.py                              publish                      NLOC=  4 CCN=1
+  data/code/doc_manager/models.py                              filename                     NLOC=  2 CCN=1
+  data/code/doc_manager/views.py                               get                          NLOC= 15 CCN=5
+  total: {'source_files': 6, 'nloc': 138, 'functions': 10, 'max_ccn': 5, 'avg_ccn': 2.2} tests 11/11
+
+== after_change1 (Part2/changes/Change1/code) ==
+  Part2/changes/Change1/code/doc_manager/admin.py              get_readonly_fields          NLOC=  4 CCN=2
+  Part2/changes/Change1/code/doc_manager/admin.py              make_published               NLOC=  8 CCN=2
+  Part2/changes/Change1/code/doc_manager/admin.py              changeform_view              NLOC= 12 CCN=3
+  Part2/changes/Change1/code/doc_manager/models.py             __init__                     NLOC= 19 CCN=4
+  Part2/changes/Change1/code/doc_manager/models.py             clean                        NLOC= 15 CCN=3
+  Part2/changes/Change1/code/doc_manager/models.py             published                    NLOC=  2 CCN=1
+  Part2/changes/Change1/code/doc_manager/models.py             set_published                NLOC=  4 CCN=1
+  Part2/changes/Change1/code/doc_manager/models.py             publish                      NLOC=  4 CCN=1
+  Part2/changes/Change1/code/doc_manager/models.py             filename                     NLOC=  2 CCN=1
+  Part2/changes/Change1/code/doc_manager/views.py              get                          NLOC= 12 CCN=4
+  total: {'source_files': 6, 'nloc': 146, 'functions': 10, 'max_ccn': 4, 'avg_ccn': 2.2} tests 19/19
+
+== after_change2 (Part2/changes/Change2/code) ==
+  Part2/changes/Change2/code/doc_manager/admin.py              get_readonly_fields          NLOC=  4 CCN=2
+  Part2/changes/Change2/code/doc_manager/admin.py              make_published               NLOC=  8 CCN=2
+  Part2/changes/Change2/code/doc_manager/admin.py              changeform_view              NLOC= 12 CCN=3
+  Part2/changes/Change2/code/doc_manager/models.py             __init__                     NLOC= 19 CCN=4
+  Part2/changes/Change2/code/doc_manager/models.py             clean                        NLOC= 15 CCN=3
+  Part2/changes/Change2/code/doc_manager/models.py             published                    NLOC=  2 CCN=1
+  Part2/changes/Change2/code/doc_manager/models.py             set_published                NLOC=  4 CCN=1
+  Part2/changes/Change2/code/doc_manager/models.py             publish                      NLOC=  4 CCN=1
+  Part2/changes/Change2/code/doc_manager/models.py             filename                     NLOC=  2 CCN=1
+  Part2/changes/Change2/code/doc_manager/views.py              get_document                 NLOC=  2 CCN=1
+  Part2/changes/Change2/code/doc_manager/views.py              get                          NLOC= 12 CCN=4
+  Part2/changes/Change2/code/doc_manager/views.py              get_document                 NLOC=  4 CCN=1
+  total: {'source_files': 6, 'nloc': 155, 'functions': 12, 'max_ccn': 4, 'avg_ccn': 2.0} tests 22/22
+
+== after_change3 (Part2/code) ==
+  Part2/code/doc_manager/admin.py                              get_readonly_fields          NLOC=  7 CCN=3
+  Part2/code/doc_manager/admin.py                              make_published               NLOC=  8 CCN=2
+  Part2/code/doc_manager/admin.py                              changeform_view              NLOC= 12 CCN=3
+  Part2/code/doc_manager/models.py                             __init__                     NLOC= 19 CCN=4
+  Part2/code/doc_manager/models.py                             clean                        NLOC= 15 CCN=3
+  Part2/code/doc_manager/models.py                             published                    NLOC=  2 CCN=1
+  Part2/code/doc_manager/models.py                             set_published                NLOC=  4 CCN=1
+  Part2/code/doc_manager/models.py                             publish                      NLOC=  4 CCN=1
+  Part2/code/doc_manager/models.py                             filename                     NLOC=  2 CCN=1
+  Part2/code/doc_manager/views.py                              get_document                 NLOC=  2 CCN=1
+  Part2/code/doc_manager/views.py                              get                          NLOC= 12 CCN=4
+  Part2/code/doc_manager/views.py                              get_document                 NLOC=  4 CCN=1
+  total: {'source_files': 6, 'nloc': 158, 'functions': 12, 'max_ccn': 4, 'avg_ccn': 2.08} tests 25/25
+

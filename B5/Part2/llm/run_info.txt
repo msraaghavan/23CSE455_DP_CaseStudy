@@ -1,0 +1,20 @@
+LLM run - Part 2 (evolution and refactoring)
+model (as reported in output_raw.json "modelUsage"): claude-opus-5-5  (Claude Opus 5.5)
+tool: Claude Code CLI 2.1.287 in print mode (claude -p), the student's Claude Pro subscription (publicly available plan)
+started (UTC): 2026-10-06T18:44:45Z
+finished (UTC): 2026-10-06T18:45:47Z   (duration 58.5 s, 1 turn)
+session id: 710e1c0a-0760-4a81-a0c0-efd47fc48979
+tokens: input 4999, output 5615 (of which 3515 thinking)
+
+exact command (run from an EMPTY folder, so no project files or memory were visible to the model):
+  cat Part2/Part2_prompt.txt Part2/llm/input_source_5943319.txt > full_message.txt
+  claude -p --model claude-opus-5-5 --tools "" --strict-mcp-config --system-prompt "You are a helpful assistant." --no-session-persistence --output-format json < full_message.txt > output_raw.json
+
+--tools ""   : the model could not open files or run code; it saw only the prompt + the input file
+output.md    : the "result" field of output_raw.json, copied unchanged
+note         : at run time the prompt file was called Part2_prompt.txt. Afterwards it was renamed to
+               Part2/Part2_prompt.text (content unchanged) to match the file name in the required hierarchy.
+input        : Part2_prompt.text (our 4 pattern instances + the 3 change requests) and
+               input_source_5943319.txt (the original source with line numbers, same file as Part 1)
+when         : the run was made after our first version of the three changes; one finding (drafts, claim 9
+               in verification.md) made us improve CH02 before the final commits

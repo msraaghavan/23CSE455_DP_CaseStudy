@@ -1,0 +1,134 @@
+diff --git a/README.rst b/README.rst
+index f205016..039101a 100644
+--- a/README.rst
++++ b/README.rst
+@@ -13,7 +13,7 @@ doc_manager
+     :alt: PyPI - Django Version
+     :target: https://www.djangoproject.com/
+ 
+-**doc_manager** is a django library for publishing documents in pdf and html format like privacy policy or term of use. It allows you to easily publish new versions of documents while preserving historical documents.
++**doc_manager** is a django library for publishing documents in pdf, html and plain-text (txt) format like privacy policy or term of use. It allows you to easily publish new versions of documents while preserving historical documents.
+ 
+ 
+ Installation
+diff --git a/doc_manager/admin.py b/doc_manager/admin.py
+index 392fe6c..321b81c 100644
+--- a/doc_manager/admin.py
++++ b/doc_manager/admin.py
+@@ -22,7 +22,7 @@ class DocumentAdmin(admin.ModelAdmin):
+     list_filter = ['add_date']
+     formfield_overrides = {
+         FileField: {
+-            'widget': FileInput(attrs={'accept': list(FILE_TYPES.values())})
++            'widget': FileInput(attrs={'accept': ','.join(FILE_TYPES.values())})
+         },
+     }
+ 
+diff --git a/doc_manager/models.py b/doc_manager/models.py
+index 8f2eb0a..e1bd18e 100644
+--- a/doc_manager/models.py
++++ b/doc_manager/models.py
+@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
+ FILE_TYPES = {
+     'pdf': 'application/pdf',
+     'html': 'text/html',
++    'txt': 'text/plain',
+ }
+ 
+ 
+diff --git a/doc_manager/views.py b/doc_manager/views.py
+index 4138a2b..6abeaa9 100644
+--- a/doc_manager/views.py
++++ b/doc_manager/views.py
+@@ -15,6 +15,8 @@ class DocumentView(View):
+         file = document_model.file_obj
+         if file is None:
+             raise Http404
+-        extension = document_model.filename().rsplit('.', 1)[-1]
++        extension = document_model.filename().rsplit('.', 1)[-1].lower()
++        if extension not in FILE_TYPES:
++            raise Http404
+         return FileResponse(file, as_attachment=False,
+                             content_type=FILE_TYPES[extension])
+diff --git a/pyproject.toml b/pyproject.toml
+index 7b25b82..548dff5 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,7 +1,7 @@
+ [tool.poetry]
+ name = "doc_manager"
+ version = "1.0.2"
+-description = "doc_manager is a django library for publishing documents in pdf and html format like privacy policy or term of use."
++description = "doc_manager is a django library for publishing documents in pdf, html and plain-text (txt) format like privacy policy or term of use."
+ authors = ["ImpiCode"]
+ license = "MIT"
+ readme = "README.rst"
+diff --git a/tests/test_admin.py b/tests/test_admin.py
+index 840c752..21d70f2 100644
+--- a/tests/test_admin.py
++++ b/tests/test_admin.py
+@@ -54,6 +54,13 @@ class AdminTestClass(TestCase):
+         self.assertFalse(TestModel.objects.get(pk=doc1.pk).published)
+         self.assertTrue(TestModel.objects.get(pk=doc2.pk).published)
+ 
++    def test_upload_box_lists_allowed_types(self):
++        form = self.site.get_form(self.factory.get(''))
++        self.assertEqual(
++            form.base_fields['file_obj'].widget.attrs['accept'],
++            'application/pdf,text/html,text/plain'
++        )
++
+     def test_changeform_view_get(self):
+         get_request = self.factory.get('')
+         get_request.user = FakeUser()
+diff --git a/tests/test_models.py b/tests/test_models.py
+index b8a1099..7bbf3c2 100644
+--- a/tests/test_models.py
++++ b/tests/test_models.py
+@@ -63,11 +63,24 @@ class DocumentModelTestClass(TestCase):
+     def test_wrong_file_extension(self):
+         f = ContentTypeRestrictedFileField(upload_to='documents/%Y/%m/%d/')
+         try:
+-            f.clean(value=TestValue('test.txt', 'text/plain', 10), model_instance='')
++            f.clean(
++                value=TestValue('test.exe', 'application/x-msdownload', 10),
++                model_instance=''
++            )
+             self.fail()
+         except ValidationError:
+             pass
+ 
++    def test_correct_file_extension_txt(self):
++        f = ContentTypeRestrictedFileField(upload_to='documents/%Y/%m/%d/')
++        try:
++            f.clean(
++                value=TestValue('test.txt', 'text/plain', 10),
++                model_instance=''
++            )
++        except ValidationError:
++            self.fail()
++
+     def test_correct_file_extension_pdf(self):
+         f = ContentTypeRestrictedFileField(upload_to='documents/%Y/%m/%d/')
+         try:
+diff --git a/tests/test_views.py b/tests/test_views.py
+index 6be21c8..4999672 100644
+--- a/tests/test_views.py
++++ b/tests/test_views.py
+@@ -45,3 +45,16 @@ class DocumentViewTestClass(TestCase):
+     def test_nothing_published(self):
+         with self.assertRaises(Http404):
+             self.get_page()
++
++    def test_txt_document(self):
++        self.publish('notice.txt')
++        self.assertEqual(self.get_page()['Content-Type'], 'text/plain')
++
++    def test_capital_letters_extension(self):
++        self.publish('POLICY.PDF')
++        self.assertEqual(self.get_page()['Content-Type'], 'application/pdf')
++
++    def test_other_file_type_gives_404(self):
++        self.publish('program.exe')
++        with self.assertRaises(Http404):
++            self.get_page()

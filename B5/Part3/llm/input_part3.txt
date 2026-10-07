@@ -1,0 +1,74 @@
+--- file: SPEC.md ---
+# Common specification for the Part 3 snippets
+
+The same two small problems are written in Java, Python, JavaScript and C++. All four versions read the
+**same test-case files** in this folder and must give the **same answers**.
+One test-case line = one case; `|` separates the fields; lines starting with `#` are comments.
+
+## Problem 1 - Template Method: "Published Document Page"
+Taken from: `View.dispatch()` (Django) calling `DocumentView.get()` (doc_manager/views.py).
+
+| Role | Name in every language | Job |
+|---|---|---|
+| AbstractClass | `View` | `dispatch(method)` is the fixed recipe |
+| ConcreteClass | `DocumentPage` | fills in the step `get()` |
+
+- **Input:** an HTTP method (text) and a list of document versions; each has a file name and a published flag.
+- **Rules (dispatch, fixed):** if the method is not `GET`, the answer is `405 Method Not Allowed`.
+  Otherwise call `get()`.
+- **Rules (get, the step):** take the first version that is published.
+  If there is none, the answer is `404 Not Found`.
+  Otherwise the answer is `200 ` + the content type of its extension: `pdf` gives `application/pdf`
+  and `html` gives `text/html`.
+- **Output:** one line of text, for example `200 application/pdf`.
+- **Error cases:** no published version (404); a method other than GET (405).
+  Other file types never reach this code: the upload check (problem 2) rejects them.
+- **Fixture:** `document_page_cases.txt`. Format: `method | name:yes/no,name:yes/no | expected`
+  (use `-` for an empty list). 7 cases.
+
+## Problem 2 - Strategy: "Upload File Checks"
+Taken from: `Field.run_validators()` (Django) with `FileExtensionValidator`, plugged in by
+`ContentTypeRestrictedFileField.__init__` (doc_manager/models.py).
+
+| Role | Name in every language | Job |
+|---|---|---|
+| Strategy | `Validator` (Java, C++); not declared in Python and JavaScript | `check(upload)` returns an error text or nothing |
+| ConcreteStrategy | `ExtensionValidator` | allows only the listed extensions |
+| Context | `UploadField` | `clean(upload)` runs every validator, then its own checks |
+| Client | `documentField(maxSize)` / `document_field(max_size)` | builds the field with `ExtensionValidator([pdf, html])` |
+
+- **Input:** a file name, a content type, a size in bytes, and the maximum size.
+- **Rules, in this order:**
+  1. Each validator runs; the first error is the answer.
+  2. `ExtensionValidator` takes the text after the last `.` in lower case (empty if there is no dot).
+     If it is not `pdf` or `html`, the answer is `ERROR extension not allowed`.
+  3. If the content type is not `application/pdf` or `text/html`, the answer is `ERROR file type not supported`.
+  4. If the size is bigger than the maximum size, the answer is `ERROR file too big`.
+  5. Otherwise the answer is `OK`.
+- **Output:** one line of text.
+- **Error cases:** wrong extension, no extension, wrong content type, too big, and a case where both the
+  extension and the size are wrong (the extension error must win, because validators run first).
+- **Fixture:** `upload_check_cases.txt`. Format: `name | content type | size | max size | expected`. 8 cases.
+
+--- file: document_page_cases.txt ---
+# Shared test cases - Template Method "Published Document Page" (same file for all 4 languages)
+# format:  HTTP method | versions (file name:published yes/no, comma separated; "-" = none) | expected answer
+GET    | policy_v1.pdf:no,policy_v2.pdf:yes | 200 application/pdf
+GET    | terms.html:yes                     | 200 text/html
+GET    | old.html:no,new.pdf:yes            | 200 application/pdf
+GET    | draft.pdf:no                       | 404 Not Found
+GET    | -                                  | 404 Not Found
+POST   | terms.html:yes                     | 405 Method Not Allowed
+DELETE | terms.html:yes                     | 405 Method Not Allowed
+
+--- file: upload_check_cases.txt ---
+# Shared test cases - Strategy "Upload File Checks" (same file for all 4 languages)
+# format:  file name | content type | size (bytes) | max size (bytes) | expected answer
+test.txt    | text/plain      | 10  | 5242880 | ERROR extension not allowed
+test.pdf    | application/pdf | 10  | 5242880 | OK
+test.html   | text/html       | 10  | 5242880 | OK
+TEST.PDF    | application/pdf | 10  | 5242880 | OK
+noextension | application/pdf | 10  | 5242880 | ERROR extension not allowed
+fake.pdf    | text/plain      | 10  | 5242880 | ERROR file type not supported
+big.pdf     | application/pdf | 100 | 10      | ERROR file too big
+test.exe    | text/plain      | 999 | 10      | ERROR extension not allowed

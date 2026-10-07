@@ -1,0 +1,9 @@
+lizard 1.17.31, production files only (per function: name, cyclomatic complexity)
+template_method_document_page/python/document_page.py: NLOC=20 functions=[('dispatch', 2), ('get', 1), ('__init__', 1), ('get', 3)]
+template_method_document_page/java/DocumentPage.java: NLOC=30 functions=[('View::dispatch', 2), ('DocumentPage::DocumentPage', 1), ('DocumentPage::get', 3)]
+template_method_document_page/javascript/documentPage.js: NLOC=28 functions=[('dispatch', 2), ('get_', 1), ('constructor', 1), ('get_', 3)]
+template_method_document_page/cpp/document_page.hpp: NLOC=38 functions=[('View::dispatch', 2), ('DocumentPage::DocumentPage', 1), ('DocumentPage::get', 3)]
+strategy_upload_check/python/upload_check.py: NLOC=31 functions=[('__init__', 1), ('check', 3), ('__init__', 1), ('clean', 5), ('document_field', 1)]
+strategy_upload_check/java/UploadCheck.java: NLOC=51 functions=[('ExtensionValidator::ExtensionValidator', 1), ('ExtensionValidator::check', 3), ('UploadField::UploadField', 1), ('UploadField::clean', 5), ('UploadCheck::documentField', 1)]
+strategy_upload_check/javascript/uploadCheck.js: NLOC=40 functions=[('constructor', 1), ('check', 3), ('constructor', 1), ('clean', 5), ('documentField', 1)]
+strategy_upload_check/cpp/upload_check.hpp: NLOC=63 functions=[('ExtensionValidator::ExtensionValidator', 1), ('ExtensionValidator::check', 4), ('UploadField::UploadField', 1), ('UploadField::clean', 5), ('documentField', 1)]

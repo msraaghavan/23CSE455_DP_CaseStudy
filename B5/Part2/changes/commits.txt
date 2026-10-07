@@ -1,0 +1,25 @@
+Part 2 commits - local clone of https://github.com/impicode/doc_manager, branch 'case-study'
+(made on 2026-10-06/07; not pushed anywhere - every version is also saved as a folder, and each step as a .diff)
+
+version          commit    what
+original         5943319   1.0.2
+                 cadf6cc   CH01: characterization tests for DocumentView
+                 c9978f5   CH01 refactoring: one FILE_TYPES table instead of four hard-coded type lists
+after_change1    8e5cd10   CH01: accept plain-text (.txt) documents
+                 3018e42   CH02 refactoring: Extract Method get_document() from DocumentView.get
+after_change2    62acc26   CH02: open an older version of a document by its id
+                 6fb6088   CH03 refactoring: Rename Parameter queryset -> document in DocumentAdmin.make_published
+after_change3    145fcce   CH03: lock the file of a version once it has been published
+
+Full hashes:
+5943319a6dd41d91807867be8d8ca0661cf93c1c
+cadf6ccd4acc7884575df1d03aba627b6344da18
+c9978f57e13bb2dfb4631954ad7b99c17f1b4c68
+8e5cd10718e80301a68fdc94c6f0ea18ca1aeead
+3018e42925879f8fafeacce1dfb7835c7469fa51
+62acc269dbad76ea0c81ab6f4a81b1d465a2e1db
+6fb608837524514a40a3791edef4545ace1e2dff
+145fccec6f27ac838cfcabbba7019e23645b3be6
+
+Saved versions: original = data/code | after_change1 = Part2/changes/Change1/code | after_change2 = Part2/changes/Change2/code | after_change3 = Part2/code
+Each version can be rebuilt without git: start from data/code and apply the .diff files of Change1, Change2, Change3 in order (git apply).

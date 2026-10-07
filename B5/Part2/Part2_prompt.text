@@ -1,0 +1,43 @@
+You are helping with a university case study on design patterns.
+
+Below you get (1) the source code of a small Django app called "doc_manager"
+(version 1.0.2, commit 5943319), (2) the four design pattern instances we found
+in it, and (3) three change requests. Every source line has its line number.
+
+For EACH change request, answer:
+  a. One real code smell in the current code that makes this change harder, and a
+     refactoring technique (by its usual name) to remove it first, without
+     changing behaviour. Say how to prove that behaviour did not change.
+  b. The smallest implementation of the change (which classes/methods change).
+  c. The effect on each of the four pattern instances, using exactly one word:
+     preserved, modified, extended, replaced, removed or newly_introduced.
+     If the change creates a NEW pattern instance, name it and give its roles.
+  d. The tests you would add (observable results).
+
+Keep the answer short and answer in Markdown.
+
+=== PATTERN INSTANCES (original code) ===
+1. Published Document Page - Template Method.
+   AbstractClass = django.views.View, TemplateMethod = View.dispatch,
+   ConcreteClass = DocumentView, step filled in = DocumentView.get (views.py 8-23).
+2. Admin Read-only Fields - Template Method.
+   AbstractClass = django.contrib.admin.ModelAdmin, TemplateMethod = ModelAdmin._changeform_view
+   and ModelAdmin.get_form, ConcreteClass = DocumentAdmin,
+   hook = DocumentAdmin.get_readonly_fields (admin.py 27-30).
+3. Upload File Checks - Strategy.
+   Context = django Field.run_validators (via ContentTypeRestrictedFileField, models.py 18-54),
+   Strategy = any validator callable (not declared), ConcreteStrategy = FileExtensionValidator,
+   Client = ContentTypeRestrictedFileField.__init__ (models.py 28).
+4. Upload Widget Choice - Strategy.
+   Context = django.forms.FileField, Strategy = django Widget, ConcreteStrategy = FileInput,
+   Client = DocumentAdmin.formfield_overrides (admin.py 21-25).
+
+=== CHANGE REQUESTS ===
+CH01. Accept plain-text (.txt) documents: the admin can upload a .txt version and
+      visitors see it as text/plain. Other types are still rejected.
+CH02. Open an older version: every saved version can be read at see_document/<id>/,
+      even when a newer version is published. Unknown id gives 404.
+CH03. Lock the file of a published version: once a version has been published,
+      its file cannot be replaced in the admin. Drafts can still be changed.
+
+=== SOURCE CODE ===

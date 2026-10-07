@@ -1,0 +1,16 @@
+Strategy - Upload File Checks - python
+working folder: Part3/strategy_upload_check/python
+runtime/compiler: CPython 3.11.9
+command: python test_upload_check.py
+(build/ and the .exe were made in a temporary folder that was deleted afterwards)
+--- test output ---
+PASS test.txt text/plain 10 -> ERROR extension not allowed
+PASS test.pdf application/pdf 10 -> OK
+PASS test.html text/html 10 -> OK
+PASS TEST.PDF application/pdf 10 -> OK
+PASS noextension application/pdf 10 -> ERROR extension not allowed
+PASS fake.pdf text/plain 10 -> ERROR file type not supported
+PASS big.pdf application/pdf 100 -> ERROR file too big
+PASS test.exe text/plain 999 -> ERROR extension not allowed
+passed 8/8
+--- exit code: 0

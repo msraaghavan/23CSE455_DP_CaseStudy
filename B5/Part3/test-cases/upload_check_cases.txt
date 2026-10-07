@@ -1,0 +1,10 @@
+# Shared test cases - Strategy "Upload File Checks" (same file for all 4 languages)
+# format:  file name | content type | size (bytes) | max size (bytes) | expected answer
+test.txt    | text/plain      | 10  | 5242880 | ERROR extension not allowed
+test.pdf    | application/pdf | 10  | 5242880 | OK
+test.html   | text/html       | 10  | 5242880 | OK
+TEST.PDF    | application/pdf | 10  | 5242880 | OK
+noextension | application/pdf | 10  | 5242880 | ERROR extension not allowed
+fake.pdf    | text/plain      | 10  | 5242880 | ERROR file type not supported
+big.pdf     | application/pdf | 100 | 10      | ERROR file too big
+test.exe    | text/plain      | 999 | 10      | ERROR extension not allowed
