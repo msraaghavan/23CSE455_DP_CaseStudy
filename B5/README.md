@@ -26,7 +26,7 @@ B5/
 |-- B5_Report.tex
 |-- data/
 |   |-- code/                        original application source (v1.0.2, commit 5943319)
-|   |-- test_result/                 baseline test log, probe test + log, environment, screenshot
+|   |-- test_result/                 baseline test log, probe test + log, environment, screenshots (app, GitHub folder)
 |-- Part1/
 |   |-- patterns.csv
 |   |-- Pattern_count.csv
@@ -112,7 +112,8 @@ To see the app running:
 
 Screenshots: `data/test_result/screenshot_see_document_original.png` and
 `Part2/changes/Change2/screenshot_old_version.png`. For these, the sample document was added with `manage.py shell`
-and the page was captured with headless Chrome.
+and the page was captured with headless Chrome. The screenshot of our team folder on GitHub (report, Section 7) is
+`data/test_result/github_screenshot.png`.
 
 Part 1 probe tests (run in `data/code`): `python ../test_result/probe_test.py` gives **10/10** (`probe_test.log`).
 
